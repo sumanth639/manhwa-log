@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manhwa Log</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Space+Grotesk:wght@400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh;background:#ccc}
+
+.app{
+  width:460px;min-height:580px;
+  display:flex;flex-direction:column;overflow:hidden;
+  font-family:'Space Grotesk',sans-serif;
+  position:relative;transition:background 0.25s,color 0.25s;
+}
+
+/* ── Themes ── */
+.app.light{
+  --ink:#1a1208;--paper:#f5f0e8;--paper2:#ede8db;--paper3:#e5dfd0;
+  --stamp:#c84b2f;--stamp-dim:rgba(200,75,47,0.08);
+  --fold:#8a7e6e;--muted:#7a7060;
+  --btn-border:#6a5e50;--btn-color:#2a1f10;
+}
+.app.dark{
+  --ink:#f0ead8;--paper:#18150f;--paper2:#211d15;--paper3:#2a2419;
+  --stamp:#e06040;--stamp-dim:rgba(224,96,64,0.12);
+  --fold:#4a4235;--muted:#8a7e6a;
+  --btn-border:#6a5a45;--btn-color:#f0ead8;
+}
+
+.app{background:var(--paper);color:var(--ink)}
+
+/* paper line texture */
+.app::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:repeating-linear-gradient(
+    0deg,transparent,transparent 27px,
+    rgba(139,120,80,0.05) 27px,rgba(139,120,80,0.05) 28px
+  );
+}
+
+/* ── Header ── */
+.header{
+  padding:13px 16px 10px;border-bottom:2px solid var(--ink);
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:1;background:var(--paper);
+}
+.logo-main{
+  font-family:'Playfair Display',serif;font-size:20px;font-weight:900;
+  font-style:italic;letter-spacing:-0.5px;color:var(--ink);line-height:1;cursor:pointer;
+}
+.logo-sub{font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.header-right{display:flex;align-items:center;gap:5px}
+
+/* Bigger hit targets on header buttons */
+.hbtn{
+  width:34px;height:34px;background:var(--paper2);
+  border:1.5px solid var(--btn-border);border-radius:2px;
+  color:var(--btn-color);cursor:pointer;font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.12s;font-family:inherit;line-height:1;font-weight:600;
+}
+.hbtn:hover{border-color:var(--stamp);color:var(--stamp);background:var(--stamp-dim)}
+
+/* ── Toolbar ── */
+.toolbar{
+  display:flex;align-items:center;gap:8px;padding:8px 16px;
+  border-bottom:1px solid var(--fold);background:var(--paper);position:relative;z-index:1;
+}
+.search-wrap{position:relative;flex:1;min-width:0}
+.search-input{
+  width:100%;background:var(--paper2);border:1.5px solid var(--btn-border);border-radius:2px;
+  padding:7px 10px 7px 30px;color:var(--ink);font-size:12px;font-family:inherit;
+  outline:none;transition:border-color 0.12s;letter-spacing:0.2px;
+}
+.search-input::placeholder{color:var(--muted)}
+.search-input:focus{border-color:var(--ink)}
+.search-icon{
+  position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  color:var(--muted);font-size:13px;pointer-events:none;font-weight:600;
+}
+.sort-select{
+  flex-shrink:0;width:82px;background:var(--paper2);
+  border:1.5px solid var(--btn-border);border-radius:2px;
+  padding:7px 6px;color:var(--btn-color);font-size:9px;font-family:inherit;
+  letter-spacing:0.5px;text-transform:uppercase;outline:none;cursor:pointer;font-weight:600;
+}
+
+/* ── Stats — unified single row ── */
+.stats-bar{
+  display:flex;align-items:stretch;
+  background:var(--paper2);border-bottom:1px solid var(--fold);
+  position:relative;z-index:1;
+}
+.stat{
+  flex:1;padding:7px 14px;font-size:9px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);
+  display:flex;align-items:center;gap:5px;
+  border-right:1px solid var(--fold);
+}
+.stat:last-child{border-right:none}
+.stat strong{color:var(--ink);font-weight:700;font-size:12px;margin-right:1px}
+.stat-label{font-size:8px;letter-spacing:1.5px}
+.stat-icon{display:inline-flex;align-items:center;color:var(--stamp);flex-shrink:0}
+
+/* ── List ── */
+.list-wrap{flex:1;overflow-y:auto;padding:10px 12px;position:relative;z-index:1}
+.list-wrap::-webkit-scrollbar{width:3px}
+.list-wrap::-webkit-scrollbar-track{background:transparent}
+.list-wrap::-webkit-scrollbar-thumb{background:var(--fold);border-radius:2px}
+.list-wrap::-webkit-scrollbar-thumb:hover{background:var(--stamp)}
+
+/* ── Empty state — more character ── */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;height:240px;gap:14px;text-align:center;
+  padding:0 30px;
+}
+.empty-ornament{
+  font-family:'Playfair Display',serif;font-size:32px;font-style:italic;
+  color:var(--stamp);opacity:0.25;line-height:1;letter-spacing:-1px;
+}
+.empty-title{
+  font-family:'Playfair Display',serif;font-size:15px;font-style:italic;
+  font-weight:700;color:var(--ink);opacity:0.4;
+}
+.empty-sub{
+  font-size:9px;letter-spacing:2.5px;text-transform:uppercase;
+  line-height:2;color:var(--muted);font-weight:600;
+}
+
+/* ── Card ── */
+.card{
+  background:var(--paper);border:1.5px solid var(--fold);border-radius:2px;
+  padding:10px 12px;margin-bottom:6px;transition:background 0.12s,border-color 0.12s;
+  position:relative;cursor:pointer;
+}
+.card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:transparent;transition:background 0.12s;border-radius:2px 0 0 2px;
+}
+.card:hover{background:var(--paper2)}
+.card:hover::before{background:var(--stamp)}
+
+/* Title row — title + delete on the same line, delete never wraps */
+.card-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:6px;min-width:0;
+}
+
+/* Title: 2-line clamp, no number prefix */
+.card-title-text{
+  font-family:'Playfair Display',serif;font-size:16px;font-weight:700;
+  color:var(--ink);flex:1;min-width:0;line-height:1.25;letter-spacing:-0.2px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-clamp:2;overflow:hidden;
+}
+
+/* Delete: always top-right, same row as title, never drops below */
+.card-del{
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:12px;opacity:0;padding:0 2px;line-height:1.35;
+  transition:opacity 0.1s,color 0.1s;flex-shrink:0;align-self:flex-start;
+}
+.card:hover .card-del{opacity:1}
+.card-del:hover{color:var(--stamp);opacity:1}
+
+.card-meta{display:flex;align-items:center;gap:6px;margin-top:7px;flex-wrap:wrap}
+.pill{
+  font-size:8px;letter-spacing:1.5px;text-transform:uppercase;
+  padding:2px 7px;border-radius:1px;font-weight:700;
+}
+.pill-ch{background:var(--stamp);color:#fff}
+.pill-site{
+  background:none;border:1px solid var(--fold);color:var(--muted);
+  max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.pill-time{
+  margin-left:auto;color:var(--muted);font-size:8px;letter-spacing:0.5px;
+  background:none;border:none;padding:0;font-family:inherit;font-weight:500;
+}
+
+/* Actions row — side by side buttons */
+.card-actions{
+  display:flex;gap:6px;margin-top:8px;
+}
+
+.continue-btn, .next-btn{
+  flex:1;background:var(--stamp-dim);
+  border:1px solid var(--stamp);border-radius:2px;
+  padding:5px 8px;color:var(--stamp);font-size:8px;font-family:inherit;
+  letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;font-weight:700;
+  transition:all 0.12s;text-align:center;display:flex;align-items:center;justify-content:center;
+  gap:4px;
+}
+.continue-btn:hover, .next-btn:hover{background:var(--stamp);color:#fff}
+.continue-btn:active, .next-btn:active{opacity:0.7}
+
+.next-btn{
+  background:var(--paper2);border-color:var(--fold);color:var(--muted);
+}
+.next-btn:hover{background:var(--stamp);border-color:var(--stamp);color:#fff}
+.next-btn:disabled{opacity:0.3;cursor:default;pointer-events:none}
+
+/* ── History ── */
+.history-toggle{
+  margin-top:6px;width:100%;background:none;border:none;
+  border-top:1px dashed var(--fold);padding:5px 0 0;
+  color:var(--muted);font-size:8px;font-family:inherit;
+  letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:600;
+  text-align:left;display:flex;align-items:center;justify-content:space-between;
+  transition:color 0.12s;
+}
+.history-toggle:hover{color:var(--ink)}
+.card-history{
+  margin-top:5px;border-top:1px solid var(--fold);
+  padding-top:5px;display:none;flex-direction:column;gap:2px;
+}
+.card-history.open{display:flex}
+.history-row{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:8px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);padding:2px 0;border-bottom:1px solid var(--fold);
+}
+.history-row:last-child{border-bottom:none}
+.history-row a{
+  color:var(--muted);text-decoration:none;font-size:10px;
+  opacity:0.5;transition:opacity 0.1s;
+}
+.history-row a:hover{opacity:1;color:var(--stamp)}
+
+/* ── Panels ── */
+.panel{display:none;flex-direction:column;flex:1;overflow:hidden}
+.panel.active{display:flex}
+
+/* ── Settings ── */
+.settings-body{
+  flex:1;padding:18px 18px 16px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:20px;position:relative;z-index:1;
+}
+.settings-body::-webkit-scrollbar{width:3px}
+.settings-body::-webkit-scrollbar-track{background:transparent}
+.settings-body::-webkit-scrollbar-thumb{background:var(--fold);border-radius:2px}
+
+.setting-label{
+  display:block;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px;padding-bottom:6px;
+  border-bottom:1.5px solid var(--ink);font-weight:700;
+}
+.setting-hint{font-size:11px;color:var(--muted);line-height:1.7;letter-spacing:0.2px;margin-top:8px}
+
+.export-btn{
+  width:100%;background:none;border:1.5px solid var(--btn-border);border-radius:2px;
+  padding:9px 12px;color:var(--btn-color);font-size:9px;font-family:inherit;
+  letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-weight:600;
+  transition:all 0.12s;text-align:left;display:flex;align-items:center;justify-content:space-between;
+}
+.export-btn:hover{border-color:var(--stamp);color:var(--stamp);background:var(--stamp-dim)}
+
+.theme-row{display:flex;align-items:center;gap:8px;margin-top:4px}
+.theme-opt{
+  flex:1;padding:9px;background:none;border:1.5px solid var(--btn-border);border-radius:2px;
+  color:var(--btn-color);font-size:9px;font-family:inherit;letter-spacing:1.5px;
+  text-transform:uppercase;cursor:pointer;font-weight:600;transition:all 0.12s;text-align:center;
+}
+.theme-opt.selected{border-color:var(--stamp);color:var(--stamp);background:var(--stamp-dim)}
+.theme-opt:hover:not(.selected){border-color:var(--ink);color:var(--ink)}
+
+/* Storage meter — prominent block */
+.storage-block{
+  margin-top:12px;background:var(--paper3);border:1.5px solid var(--fold);
+  border-radius:2px;padding:10px 12px;
+}
+.storage-top{
+  display:flex;align-items:baseline;justify-content:space-between;
+  margin-bottom:8px;
+}
+.storage-used{
+  font-family:'Playfair Display',serif;font-size:18px;font-weight:700;
+  color:var(--ink);letter-spacing:-0.5px;
+}
+.storage-used span{font-size:11px;font-family:'Space Grotesk',sans-serif;color:var(--muted);font-weight:600;margin-left:2px}
+.storage-total{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.storage-bar-wrap{
+  width:100%;height:5px;background:var(--paper2);border-radius:3px;overflow:hidden;
+}
+.storage-bar{
+  height:100%;background:var(--stamp);border-radius:3px;
+  transition:width 0.5s ease,background 0.3s;width:0%;
+}
+.storage-bar.warn{background:var(--stale)}
+.storage-bar.critical{background:#c84b2f}
+.storage-pct{
+  margin-top:5px;font-size:8.5px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);font-weight:600;text-align:right;
+}
+
+/* Site grid */
+.site-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.site-tag{
+  font-size:8px;letter-spacing:1px;text-transform:uppercase;font-weight:700;
+  color:var(--muted);background:var(--paper3);border:1px solid var(--fold);
+  padding:3px 7px;border-radius:1px;white-space:nowrap;
+  transition:border-color 0.12s,color 0.12s;
+}
+.site-tag:hover{border-color:var(--stamp);color:var(--stamp)}
+
+/* Back btn reuses continue-btn style */
+.back-btn{
+  width:100%;background:var(--stamp-dim);border:1.5px solid var(--stamp);border-radius:2px;
+  padding:9px 14px;color:var(--stamp);font-size:9px;font-family:inherit;
+  letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:600;
+  transition:all 0.12s;text-align:left;display:flex;align-items:center;justify-content:space-between;
+  margin-top:auto;
+}
+.back-btn:hover{background:var(--stamp);color:#fff}
+</style>
+</head>
+<body>
+
+<div class="app light" id="app">
+
+  <!-- ══ Header ══ -->
+  <div class="header">
+    <div id="logoHome">
+      <div class="logo-main">Manhwa Log</div>
+      <div class="logo-sub">Reading Tracker</div>
+    </div>
+    <div class="header-right">
+      <button class="hbtn" id="themeToggle" title="Toggle theme">☀</button>
+      <button class="hbtn" id="refreshBtn" title="Refresh">↻</button>
+      <button class="hbtn" id="settingsToggle" title="Settings">⚙</button>
+    </div>
+  </div>
+
+  <!-- ══ Reading Panel ══ -->
+  <div class="panel active" id="readingPanel">
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" id="searchInput" placeholder="Search titles..." autocomplete="off">
+      </div>
+      <select class="sort-select" id="sortSelect">
+        <option value="recent">Recent</option>
+        <option value="chapter">Chapter</option>
+      </select>
+    </div>
+
+    <!-- Single unified stats bar — 4 clear distinct stats -->
+    <div class="stats-bar">
+      <div class="stat" title="Total chapters read across all time">
+        <span class="stat-icon">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 3C2 2.45 2.45 2 3 2H7C7.55 2 8 2.45 8 3V13C8 13 6.5 12 5 12H3C2.45 12 2 11.55 2 11V3Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+            <path d="M14 3C14 2.45 13.55 2 13 2H9C8.45 2 8 2.45 8 3V13C8 13 9.5 12 11 12H13C13.55 12 14 11.55 14 11V3Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+            <line x1="4" y1="5" x2="6" y2="5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+            <line x1="4" y1="7" x2="6" y2="7" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+            <line x1="10" y1="5" x2="12" y2="5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+            <line x1="10" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <strong id="totalChaptersRead">0</strong>
+        <span class="stat-label">ch read</span>
+      </div>
+      <div class="stat" title="Current daily reading streak">
+        <span class="stat-icon">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6.5 9.5L9.5 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M5.5 7.5L3.5 9.5C2.67 10.33 2.67 11.67 3.5 12.5C4.33 13.33 5.67 13.33 6.5 12.5L8.5 10.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+            <path d="M10.5 8.5L12.5 6.5C13.33 5.67 13.33 4.33 12.5 3.5C11.67 2.67 10.33 2.67 9.5 3.5L7.5 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          </svg>
+        </span>
+        <strong id="readingStreak">0</strong>
+        <span class="stat-label">day streak</span>
+      </div>
+      <div class="stat" title="Total manhwa being tracked">
+        <strong id="totalCount">0</strong>
+        <span class="stat-label">titles</span>
+      </div>
+      <div class="stat" title="Chapters read today">
+        <strong id="todayCount">0</strong>
+        <span class="stat-label">today</span>
+      </div>
+    </div>
+
+    <div class="list-wrap" id="listWrap">
+      <!-- Empty state with more character -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-ornament">✦ ✦ ✦</div>
+        <div class="empty-title">No chapters tracked yet</div>
+        <div class="empty-sub">Open any supported site<br>and start reading to begin</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ Settings Panel ══ -->
+  <div class="panel" id="settingsPanel">
+    <div class="settings-body">
+
+      <div class="setting-section">
+        <span class="setting-label">Appearance</span>
+        <div class="theme-row">
+          <button class="theme-opt selected" data-mode="light" id="lightOpt">☀ Light</button>
+          <button class="theme-opt" data-mode="dark" id="darkOpt">☾ Dark</button>
+        </div>
+        <div class="setting-hint">Warm paper or late-night dark — persisted across sessions.</div>
+      </div>
+
+      <div class="setting-section">
+        <span class="setting-label">Data Management</span>
+        <div class="theme-row">
+          <button class="export-btn" id="exportBtn" style="flex:1"><span>Export JSON</span><span>↓</span></button>
+          <button class="export-btn" id="importBtn" style="flex:1"><span>Import JSON</span><span>↑</span></button>
+          <input type="file" id="importFile" accept=".json" style="display:none">
+        </div>
+        <div class="setting-hint">Back up or restore your reading list. Import merges with existing data.</div>
+        <p id="importStatus" style="font-size:10px;letter-spacing:0.5px;margin-top:8px;min-height:16px;transition:color 0.2s;"></p>
+
+        <!-- Storage usage — prominent block -->
+        <div class="storage-block">
+          <div class="storage-top">
+            <div class="storage-used" id="storageUsed">—<span>MB used</span></div>
+            <div class="storage-total" id="storageTotal">of 10 MB</div>
+          </div>
+          <div class="storage-bar-wrap">
+            <div class="storage-bar" id="storageBar"></div>
+          </div>
+          <div class="storage-pct" id="storagePct">calculating…</div>
+        </div>
+      </div>
+
+      <div class="setting-section">
+        <span class="setting-label">Supported Sites</span>
+        <div class="site-grid">
+          <span class="site-tag">Webtoon</span>
+          <span class="site-tag">Asura Scans</span>
+          <span class="site-tag">Reaper Scans</span>
+          <span class="site-tag">ToonGod</span>
+          <span class="site-tag">Toonily</span>
+          <span class="site-tag">Mangafire</span>
+          <span class="site-tag">Flame Comics</span>
+          <span class="site-tag">KunManga</span>
+          <span class="site-tag">Manhwa Clan</span>
+          <span class="site-tag">Manhua US</span>
+          <span class="site-tag">Hive Toons</span>
+          <span class="site-tag">Manta</span>
+          <span class="site-tag">Tapas</span>
+          <span class="site-tag">Tappytoon</span>
+          <span class="site-tag">Manhwa Top</span>
+          <span class="site-tag">King of Shojo</span>
+        </div>
+      </div>
+
+      <button class="back-btn" id="backToReading">
+        <span>Back to Reading</span><span>←</span>
+      </button>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="src/popup.js"></script>
+</body>
+</html>
