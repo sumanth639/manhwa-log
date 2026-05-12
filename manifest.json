@@ -21,6 +21,10 @@
     }
   },
 
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data:; default-src 'self'"
+  },
+
   "permissions": ["storage", "scripting","tabs"],
 
   "host_permissions": [

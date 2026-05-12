@@ -1,12 +1,15 @@
 // ============================================================
 // Manhwa Tracker — Background Service Worker
-// Handles storage, deduplication, and SPA detection
+// Handles storage, deduplication, analytics, and navigation relays.
 // ============================================================
 
 const STORAGE_KEY = "manhwa_tracker_list";
 const SETTINGS_KEY = "manhwa_tracker_settings";
+const ANALYTICS_KEY = "manhwa_log_analytics";
 
-// ── Helpers ──────────────────────────────────────────────────
+// ------------------------------------------------------------
+// Storage Helpers
+// ------------------------------------------------------------
 
 async function getList() {
   const result = await chrome.storage.local.get(STORAGE_KEY);
@@ -22,19 +25,22 @@ async function getSettings() {
   return result[SETTINGS_KEY] || {};
 }
 
-const ANALYTICS_KEY = "manhwa_log_analytics";
-
+// Canonical titles are used only for matching and analytics keys. The
+// original stored title remains user-facing and is left untouched elsewhere.
 function canonicalTitle(title) {
   if (!title) return "";
-  // Normalize to lowercase words only — preserves boundaries to avoid false merges
   return title
     .toLowerCase()
+    .replace(/\b(chapter|ch|episode|ep)\.?\s*\d+(\.\d+)?\b/g, "")
+    .replace(/\b\d+(\.\d+)?\b$/g, "")
     .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-// ── Fuzzy Title Matching ──────────────────────────────────────
+// ------------------------------------------------------------
+// Fuzzy Title Matching
+// ------------------------------------------------------------
 
 /**
  * Standard dynamic-programming Levenshtein distance.
@@ -43,7 +49,6 @@ function canonicalTitle(title) {
 function levenshteinDistance(a, b) {
   const m = a.length;
   const n = b.length;
-  // dp[i][j] = edit distance between a[0..i-1] and b[0..j-1]
   const dp = Array.from({ length: m + 1 }, (_, i) => {
     const row = new Array(n + 1).fill(0);
     row[0] = i;
@@ -65,18 +70,16 @@ function levenshteinDistance(a, b) {
 
 /**
  * Fast-path: exact canonical match.
- * Slow-path: Levenshtein ≤ 3 on canonical strings.
- * Threshold 3 is intentional — keeps "Tower of God" / "Tower of Greed" (distance 4) separate.
+ * Slow-path: Levenshtein <= 3 on canonical strings.
+ * Threshold 3 is intentional — keeps similar-but-different titles separate.
  * Returns the matched list item, or null.
  */
 function fuzzyTitleMatch(newTitle, list) {
   const target = canonicalTitle(newTitle);
 
-  // 1. Exact canonical match (O(n), no Levenshtein cost)
   const exact = list.find(item => canonicalTitle(item.title) === target);
   if (exact) return exact;
 
-  // 2. Fuzzy match — find closest entry within threshold
   const THRESHOLD = 3;
   let bestMatch = null;
   let bestDist = Infinity;
@@ -92,11 +95,17 @@ function fuzzyTitleMatch(newTitle, list) {
   return bestMatch;
 }
 
+// ------------------------------------------------------------
+// Analytics
+// ------------------------------------------------------------
+
 async function getAnalytics() {
   const res = await chrome.storage.local.get(ANALYTICS_KEY);
   return res[ANALYTICS_KEY] || { totalChapters: 0, daily: {}, titles: {} };
 }
 
+// Analytics intentionally count chapter advances, not every revisit, so the
+// popup stats represent reading progress instead of refresh noise.
 async function trackAnalytics(data) {
   const analytics = await getAnalytics();
   const today = new Date().toISOString().slice(0, 10);
@@ -107,7 +116,7 @@ async function trackAnalytics(data) {
   const titleKey = canonicalTitle(data.title);
   analytics.titles[titleKey] = (analytics.titles[titleKey] || 0) + 1;
 
-  // Prune daily keys older than 90 days to prevent unbounded growth
+  // Prune daily keys older than 90 days to prevent unbounded growth.
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 90);
   const cutoffStr = cutoff.toISOString().slice(0, 10);
@@ -118,13 +127,15 @@ async function trackAnalytics(data) {
   await chrome.storage.local.set({ [ANALYTICS_KEY]: analytics });
 }
 
-// ── Main update logic ─────────────────────────────────────────
+// ------------------------------------------------------------
+// Progress Update Pipeline
+// ------------------------------------------------------------
 
 async function updateProgress(data) {
   let list = await getList();
   let cleanTitle = data.title;
 
-  // Guard: reject invalid chapter numbers to prevent data corruption
+  // Guard against incomplete detections before touching persisted state.
   if (!cleanTitle || cleanTitle.toLowerCase() === "read") return;
   if (!data.chapter || isNaN(data.chapter) || data.chapter <= 0) return;
 
@@ -133,25 +144,27 @@ async function updateProgress(data) {
 
   const updatedEntry = {
     id: idx >= 0 ? list[idx].id : Date.now().toString(),
-    title: idx >= 0 ? list[idx].title : cleanTitle, // Keep first seen title variant
+    title: idx >= 0 ? list[idx].title : cleanTitle,
     lastChapter: data.chapter,
     lastURL: data.url,
     nextURL: data.nextURL || null,
     site: data.site,
+    // Prefer a freshly-detected cover; fall back to the previously stored one
+    // so a thumbnail is never lost once captured. Null means no cover found.
+    cover: data.cover || (idx >= 0 ? (list[idx].cover || null) : null),
     updatedAt: data.timestamp,
     addedAt: idx >= 0 ? list[idx].addedAt : data.timestamp,
     sources: idx >= 0 ? (list[idx].sources || []) : [],
     history: idx >= 0 ? (list[idx].history || []) : []
   };
 
-  // Merge sources — capped at 5 most recent to prevent unbounded growth
-  const sourceExists = updatedEntry.sources.some(s => s.site === data.site);
-  if (!sourceExists) {
-    updatedEntry.sources = [
-      { site: data.site, url: data.url },
-      ...updatedEntry.sources
-    ].slice(0, 5);
-  }
+  // Keep the current site first so the popup can show a stable primary source
+  // while still preserving alternate mirrors for the same series.
+  const priorSources = updatedEntry.sources.filter(source => source && source.site && source.url);
+  updatedEntry.sources = [
+    { site: data.site, url: data.url, lastSeenAt: data.timestamp },
+    ...priorSources.filter(source => source.site !== data.site)
+  ].slice(0, 5);
 
   let prevChapter = null;
 
@@ -159,9 +172,14 @@ async function updateProgress(data) {
     const existing = list[idx];
     prevChapter = existing.lastChapter;
     if (data.chapter < existing.lastChapter) return;
-    if (data.chapter === existing.lastChapter && data.url === existing.lastURL) return;
+    if (data.chapter === existing.lastChapter && data.url === existing.lastURL) {
+      // Always proceed if we now have a cover that wasn't stored before, or if it changed.
+      // (This fixes the case where an old, incorrect og:image logo was previously saved).
+      const coverUpdated = data.cover && data.cover !== existing.cover;
+      if (!coverUpdated) return;
+    }
 
-    // Track history
+    // Retain a short audit trail of chapter progression for the popup history UI.
     if (existing.lastChapter !== data.chapter) {
       updatedEntry.history = [
         { chapter: existing.lastChapter, url: existing.lastURL, ts: existing.updatedAt },
@@ -173,16 +191,14 @@ async function updateProgress(data) {
     list.unshift(updatedEntry);
   }
 
-  // Change 4: retry-on-fail save
-  let saved = false;
+  // Retry once before surfacing a badge failure. Storage writes are small,
+  // but a brief retry is cheap and helps absorb transient extension issues.
   try {
     await saveList(list);
-    saved = true;
   } catch {
     await new Promise(r => setTimeout(r, 500));
     try {
       await saveList(list);
-      saved = true;
     } catch {
       chrome.action.setBadgeText({ text: "\u2717" });
       chrome.action.setBadgeBackgroundColor({ color: "#c84b2f" });
@@ -190,21 +206,21 @@ async function updateProgress(data) {
     }
   }
 
-  // Only count analytics when the chapter has actually advanced (not revisits)
   const isNewChapter = prevChapter === null || data.chapter !== prevChapter;
   if (isNewChapter) await trackAnalytics(data);
 
-  chrome.action.setBadgeText({ text: "✓" });
+  chrome.action.setBadgeText({ text: "\u2713" });
   chrome.action.setBadgeBackgroundColor({ color: "#e06040" });
   setTimeout(() => chrome.action.setBadgeText({ text: "" }), 2000);
 
-  // Change 3: warn if storage approaches 10MB cap
   await checkStorageQuota();
 
   return updatedEntry;
 }
 
-// ── Storage Quota Guard (Change 3) ───────────────────────────
+// ------------------------------------------------------------
+// Storage Quota Guard
+// ------------------------------------------------------------
 
 async function checkStorageQuota() {
   const bytesInUse = await chrome.storage.local.getBytesInUse(null);
@@ -214,15 +230,21 @@ async function checkStorageQuota() {
   }
 }
 
-// ── SPA / URL Change Tracking ────────────────────────────────
-// Background detects URL changes (including pushState) and notifies content script
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+// ------------------------------------------------------------
+// Tab Navigation Relay
+// ------------------------------------------------------------
+
+// The content script cannot always observe SPA URL changes by itself, so the
+// background worker relays browser-level updates back into the active tab.
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.url) {
     chrome.tabs.sendMessage(tabId, { type: "URL_CHANGED", url: changeInfo.url }).catch(() => {});
   }
 });
 
-// ── Message handler ───────────────────────────────────────────
+// ------------------------------------------------------------
+// Runtime Message Handling
+// ------------------------------------------------------------
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "GET_MANTA_DATA") {
@@ -239,9 +261,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }).catch(() => {
       sendResponse(null);
     });
-    return true; // keep channel open
+    return true;
   }
 
+  // Detection reports from the content script funnel through one update path
+  // so deduplication, history, analytics, and badges stay in sync.
   if (message.type === "CHAPTER_DETECTED") {
     updateProgress(message.data).then(entry => {
       sendResponse({ success: true, entry });
@@ -277,6 +301,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  // Manual add reuses the same pipeline as automatic detection for consistency.
   if (message.type === "MANUAL_ADD") {
     updateProgress(message.data).then(entry => {
       sendResponse({ success: true, entry });
@@ -291,6 +316,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  // Import merges by fuzzy title so mirror-site titles can collapse into the
+  // same entry instead of duplicating the reading list.
   if (message.type === "IMPORT_LIST") {
     getList().then(async existingList => {
       const newList = message.list;
@@ -301,7 +328,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const idx = existingMatch ? merged.indexOf(existingMatch) : -1;
 
         if (idx >= 0) {
-          // Keep the one with the higher chapter
           if (newItem.lastChapter > merged[idx].lastChapter) {
             merged[idx] = { ...newItem };
           }
@@ -310,7 +336,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
       });
 
-      // Sort by updatedAt
       merged.sort((a, b) => b.updatedAt - a.updatedAt);
       await saveList(merged);
       sendResponse({ success: true });
