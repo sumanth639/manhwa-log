@@ -6,58 +6,33 @@
 <title>Manhwa Log</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Space+Grotesk:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="src/popup.css">
 </head>
 <body>
 
-<div class="app light" id="app">
-
-  <!-- ══ Header ══ -->
+<div class="app dark" id="app">
   <div class="header">
     <div id="logoHome">
       <div class="logo-main">Manhwa Log</div>
       <div class="logo-sub">Reading Tracker</div>
     </div>
+
     <div class="header-right">
       <button class="hbtn" id="themeToggle" title="Toggle theme">
         <svg class="icon-light" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#a)" fill="currentColor"><path d="M12 0a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V1a1 1 0 0 1 1-1ZM4.929 3.515a1 1 0 0 0-1.414 1.414l2.828 2.828a1 1 0 0 0 1.414-1.414L4.93 3.515ZM1 11a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2H1ZM18 12a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2h-4a1 1 0 0 1-1-1ZM17.657 16.243a1 1 0 0 0-1.414 1.414l2.828 2.828a1 1 0 1 0 1.414-1.414l-2.828-2.828ZM7.757 17.657a1 1 0 1 0-1.414-1.414L3.515 19.07a1 1 0 1 0 1.414 1.414l2.828-2.828ZM20.485 4.929a1 1 0 0 0-1.414-1.414l-2.828 2.828a1 1 0 1 0 1.414 1.414l2.828-2.828ZM13 19a1 1 0 1 0-2 0v4a1 1 0 1 0 2 0v-4ZM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"/></g><defs><clipPath id="a"><path fill="#ffffff" d="M0 0h24v24H0z"/></clipPath></defs></svg>
-        <svg class="icon-dark" width="18" height="18" viewBox="0 0 35 35" data-name="Layer 2" id="Layer_2" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M18.44,34.68a18.22,18.22,0,0,1-2.94-.24,18.18,18.18,0,0,1-15-20.86A18.06,18.06,0,0,1,9.59.63,2.42,2.42,0,0,1,12.2.79a2.39,2.39,0,0,1,1,2.41L11.9,3.1l1.23.22A15.66,15.66,0,0,0,23.34,21h0a15.82,15.82,0,0,0,8.47.53A2.44,2.44,0,0,1,34.47,25,18.18,18.18,0,0,1,18.44,34.68ZM10.67,2.89a15.67,15.67,0,0,0-5,22.77A15.66,15.66,0,0,0,32.18,24a18.49,18.49,0,0,1-9.65-.64A18.18,18.18,0,0,1,10.67,2.89Z"/></svg>
+        <svg class="icon-dark" width="18" height="18" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M18.44,34.68a18.22,18.22,0,0,1-2.94-.24,18.18,18.18,0,0,1-15-20.86A18.06,18.06,0,0,1,9.59.63,2.42,2.42,0,0,1,12.2.79a2.39,2.39,0,0,1,1,2.41L11.9,3.1l1.23.22A15.66,15.66,0,0,0,23.34,21h0a15.82,15.82,0,0,0,8.47.53A2.44,2.44,0,0,1,34.47,25,18.18,18.18,0,0,1,18.44,34.68ZM10.67,2.89a15.67,15.67,0,0,0-5,22.77A15.66,15.66,0,0,0,32.18,24a18.49,18.49,0,0,1-9.65-.64A18.18,18.18,0,0,1,10.67,2.89Z"/></svg>
       </button>
+
       <button class="hbtn" id="settingsToggle" title="Settings">
         <svg width="18" height="18" viewBox="0 0 159.809 159.809" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M154.742,75.159h-8.961c-0.408-5.354-1.458-10.531-3.072-15.456l8.276-3.427c2.587-1.072,3.815-4.038,2.744-6.624
-            c-1.071-2.587-4.037-3.816-6.624-2.744l-8.291,3.434c-2.401-4.715-5.354-9.102-8.77-13.081l6.363-6.364
-            c1.98-1.981,1.98-5.19,0-7.17c-1.98-1.981-5.19-1.981-7.17,0l-6.364,6.364c-3.98-3.414-8.368-6.367-13.081-8.768l3.435-8.293
-            c1.071-2.587-0.157-5.552-2.744-6.624c-2.587-1.072-5.552,0.157-6.624,2.744l-3.432,8.286c-4.927-1.614-10.105-2.67-15.462-3.078
-            c0.002-0.059,0.009-0.116,0.009-0.175v-8.79c0-2.8-2.27-5.07-5.07-5.07c-2.8,0-5.07,2.27-5.07,5.07v8.79
-            c0,0.059,0.007,0.114,0.009,0.172c-5.361,0.409-10.544,1.459-15.473,3.076c-0.021-0.056-0.037-0.112-0.06-0.167L55.951,9.15
-            c-1.071-2.587-4.038-3.815-6.623-2.744c-2.587,1.071-3.815,4.037-2.744,6.624l3.36,8.114c0.025,0.06,0.055,0.118,0.082,0.177
-            c-4.715,2.403-9.105,5.356-13.085,8.773l-6.367-6.367c-1.98-1.98-5.19-1.98-7.17,0c-1.98,1.98-1.98,5.19,0,7.169l6.362,6.362
-            c-3.415,3.98-6.367,8.369-8.769,13.083l-8.291-3.434c-2.587-1.071-5.553,0.158-6.624,2.744c-1.071,2.587,0.157,5.552,2.744,6.623
-            l8.276,3.428c-1.613,4.924-2.664,10.102-3.072,15.456H5.07c-2.8,0-5.07,2.27-5.07,5.07c0,2.8,2.27,5.07,5.07,5.07h8.961
-            c0.409,5.355,1.46,10.532,3.075,15.456l-8.279,3.428c-2.587,1.072-3.815,4.038-2.744,6.624c0.809,1.952,2.696,3.13,4.686,3.13
-            c0.646,0,1.303-0.124,1.937-0.387l8.296-3.436c2.403,4.712,5.353,9.101,8.768,13.08l-6.366,6.366c-1.98,1.981-1.98,5.19,0,7.17
-            c0.99,0.99,2.287,1.485,3.584,1.485c1.298,0,2.595-0.495,3.585-1.485l6.367-6.367c3.98,3.415,8.364,6.372,13.077,8.773
-            l-3.435,8.293c-1.071,2.587,0.157,5.552,2.744,6.623c0.635,0.263,1.291,0.387,1.938,0.387c1.989,0,3.877-1.178,4.686-3.13
-            l3.43-8.281c4.924,1.613,10.1,2.666,15.455,3.074v8.314c0,2.8,2.27,5.07,5.07,5.07c2.8,0,5.07-2.27,5.07-5.07v-8.314
-            c5.354-0.409,10.532-1.457,15.456-3.073l3.43,8.28c0.809,1.952,2.696,3.13,4.686,3.13c0.646,0,1.304-0.125,1.938-0.387
-            c2.587-1.072,3.815-4.038,2.744-6.624l-3.436-8.294c4.712-2.403,9.1-5.354,13.079-8.77l6.367,6.367
-            c0.99,0.99,2.287,1.485,3.585,1.485c1.297,0,2.595-0.495,3.585-1.485c1.98-1.98,1.98-5.189,0-7.17l-6.361-6.362
-            c3.414-3.979,6.366-8.368,8.768-13.082l8.291,3.435c0.635,0.262,1.291,0.387,1.938,0.387c1.989,0,3.877-1.178,4.686-3.13
-            c1.071-2.587-0.157-5.552-2.744-6.624l-8.277-3.428c1.613-4.925,2.664-10.103,3.072-15.457h8.961c2.8,0,5.07-2.27,5.07-5.07
-            C159.812,77.429,157.542,75.159,154.742,75.159z M79.907,136.157c-30.838,0-55.928-25.089-55.928-55.928
-            s25.089-55.928,55.928-55.928s55.928,25.089,55.928,55.928S110.746,136.157,79.907,136.157z"/>
-          <path d="M79.907,38.4c-23.065,0-41.829,18.764-41.829,41.829c0,23.064,18.765,41.829,41.829,41.829s41.829-18.764,41.829-41.829
-            C121.736,57.165,102.971,38.4,79.907,38.4z M79.907,111.919c-17.474,0-31.69-14.216-31.69-31.689
-            c0-17.474,14.216-31.69,31.69-31.69c17.473,0,31.69,14.216,31.69,31.69C111.597,97.703,97.381,111.919,79.907,111.919z"/>
-          <path d="M79.907,53.568c-14.701,0-26.661,11.96-26.661,26.662c0,14.701,11.96,26.661,26.661,26.661
-            c14.701,0,26.662-11.96,26.662-26.661C106.568,65.528,94.608,53.568,79.907,53.568z M79.907,96.751
-            c-9.111,0-16.522-7.411-16.522-16.521c0-9.111,7.412-16.522,16.522-16.522s16.522,7.411,16.522,16.522
-            C96.429,89.34,89.017,96.751,79.907,96.751z"/>
+          <path d="M154.742,75.159h-8.961c-0.408-5.354-1.458-10.531-3.072-15.456l8.276-3.427c2.587-1.072,3.815-4.038,2.744-6.624c-1.071-2.587-4.037-3.816-6.624-2.744l-8.291,3.434c-2.401-4.715-5.354-9.102-8.77-13.081l6.363-6.364c1.98-1.981,1.98-5.19,0-7.17c-1.98-1.981-5.19-1.981-7.17,0l-6.364,6.364c-3.98-3.414-8.368-6.367-13.081-8.768l3.435-8.293c1.071-2.587-0.157-5.552-2.744-6.624c-2.587-1.072-5.552,0.157-6.624,2.744l-3.432,8.286c-4.927-1.614-10.105-2.67-15.462-3.078c0.002-0.059,0.009-0.116,0.009-0.175v-8.79c0-2.8-2.27-5.07-5.07-5.07c-2.8,0-5.07,2.27-5.07,5.07v8.79c0,0.059,0.007,0.114,0.009,0.172c-5.361,0.409-10.544,1.459-15.473,3.076c-0.021-0.056-0.037-0.112-0.06-0.167L55.951,9.15c-1.071-2.587-4.038-3.815-6.623-2.744c-2.587,1.071-3.815,4.037-2.744,6.624l3.36,8.114c0.025,0.06,0.055,0.118,0.082,0.177c-4.715,2.403-9.105,5.356-13.085,8.773l-6.367-6.367c-1.98-1.98-5.19-1.98-7.17,0c-1.98,1.98-1.98,5.19,0,7.169l6.362,6.362c-3.415,3.98-6.367,8.369-8.769,13.083l-8.291-3.434c-2.587-1.071-5.553,0.158-6.624,2.744c-1.071,2.587,0.157,5.552,2.744,6.623l8.276,3.428c-1.613,4.924-2.664,10.102-3.072,15.456H5.07c-2.8,0-5.07,2.27-5.07,5.07c0,2.8,2.27,5.07,5.07,5.07h8.961c0.409,5.355,1.46,10.532,3.075,15.456l-8.279,3.428c-2.587,1.072-3.815,4.038-2.744,6.624c0.809,1.952,2.696,3.13,4.686,3.13c0.646,0,1.303-0.124,1.937-0.387l8.296-3.436c2.403,4.712,5.353,9.101,8.768,13.08l-6.366,6.366c-1.98,1.981-1.98,5.19,0,7.17c0.99,0.99,2.287,1.485,3.584,1.485c1.298,0,2.595-0.495,3.585-1.485l6.367-6.367c3.98,3.415,8.364,6.372,13.077,8.773l-3.435,8.293c-1.071,2.587,0.157,5.552,2.744,6.623c0.635,0.263,1.291,0.387,1.938,0.387c1.989,0,3.877-1.178,4.686-3.13l3.43-8.281c4.924,1.613,10.1,2.666,15.455,3.074v8.314c0,2.8,2.27,5.07,5.07,5.07c2.8,0,5.07-2.27,5.07-5.07v-8.314c5.354-0.409,10.532-1.457,15.456-3.073l3.43,8.28c0.809,1.952,2.696,3.13,4.686,3.13c0.646,0,1.304-0.125,1.938-0.387c2.587-1.072,3.815-4.038,2.744-6.624l-3.436-8.294c4.712-2.403,9.1-5.354,13.079-8.77l6.367,6.367c0.99,0.99,2.287,1.485,3.585,1.485c1.297,0,2.595-0.495,3.585-1.485c1.98-1.98,1.98-5.189,0-7.17l-6.361-6.362c3.414-3.979,6.366-8.368,8.768-13.082l8.291,3.435c0.635,0.262,1.291,0.387,1.938,0.387c1.989,0,3.877-1.178,4.686-3.13c1.071-2.587-0.157-5.552-2.744-6.624l-8.277-3.428c1.613-4.925,2.664-10.103,3.072-15.457h8.961c2.8,0,5.07-2.27,5.07-5.07C159.812,77.429,157.542,75.159,154.742,75.159z M79.907,136.157c-30.838,0-55.928-25.089-55.928-55.928s25.089-55.928,55.928-55.928s55.928,25.089,55.928,55.928S110.746,136.157,79.907,136.157z"/>
+          <path d="M79.907,38.4c-23.065,0-41.829,18.764-41.829,41.829c0,23.064,18.765,41.829,41.829,41.829s41.829-18.764,41.829-41.829C121.736,57.165,102.971,38.4,79.907,38.4z M79.907,111.919c-17.474,0-31.69-14.216-31.69-31.689c0-17.474,14.216-31.69,31.69-31.69c17.473,0,31.69,14.216,31.69,31.69C111.597,97.703,97.381,111.919,79.907,111.919z"/>
+          <path d="M79.907,53.568c-14.701,0-26.661,11.96-26.661,26.662c0,14.701,11.96,26.661,26.661,26.661c14.701,0,26.662-11.96,26.662-26.661C106.568,65.528,94.608,53.568,79.907,53.568z M79.907,96.751c-9.111,0-16.522-7.411-16.522-16.521c0-9.111,7.412-16.522,16.522-16.522s16.522,7.411,16.522,16.522C96.429,89.34,89.017,96.751,79.907,96.751z"/>
         </svg>
       </button>
-      <button class="hbtn" id="headerBackBtn" title="Back to reading" style="display: none;">
+
+      <button class="hbtn is-hidden" id="headerBackBtn" title="Back to reading" hidden>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -65,12 +40,10 @@
     </div>
   </div>
 
-  <!-- ══ Reading Panel ══ -->
   <div class="panel active" id="readingPanel">
-
     <div class="toolbar">
       <div class="search-wrap">
-        <span class="search-icon">⌕</span>
+        <span class="search-icon">&#8981;</span>
         <input class="search-input" id="searchInput" placeholder="Search titles..." autocomplete="off">
       </div>
       <select class="sort-select" id="sortSelect">
@@ -79,115 +52,121 @@
       </select>
     </div>
 
-    <!-- Single unified stats bar — 4 clear distinct stats -->
-    <div class="stats-bar">
-      <div class="stat" title="Total chapters read across all time">
-        <span class="stat-icon">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 3C2 2.45 2.45 2 3 2H7C7.55 2 8 2.45 8 3V13C8 13 6.5 12 5 12H3C2.45 12 2 11.55 2 11V3Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
-            <path d="M14 3C14 2.45 13.55 2 13 2H9C8.45 2 8 2.45 8 3V13C8 13 9.5 12 11 12H13C13.55 12 14 11.55 14 11V3Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
-            <line x1="4" y1="5" x2="6" y2="5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
-            <line x1="4" y1="7" x2="6" y2="7" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
-            <line x1="10" y1="5" x2="12" y2="5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
-            <line x1="10" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <strong id="totalChaptersRead">0</strong>
-        <span class="stat-label">ch read</span>
-      </div>
-      <div class="stat" title="Current daily reading streak">
-        <span class="stat-icon">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6.5 9.5L9.5 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-            <path d="M5.5 7.5L3.5 9.5C2.67 10.33 2.67 11.67 3.5 12.5C4.33 13.33 5.67 13.33 6.5 12.5L8.5 10.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
-            <path d="M10.5 8.5L12.5 6.5C13.33 5.67 13.33 4.33 12.5 3.5C11.67 2.67 10.33 2.67 9.5 3.5L7.5 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
-          </svg>
-        </span>
-        <strong id="readingStreak">0</strong>
-        <span class="stat-label">day streak</span>
-      </div>
-      <div class="stat" title="Total manhwa being tracked">
-        <strong id="totalCount">0</strong>
-        <span class="stat-label">titles</span>
-      </div>
-      <div class="stat" title="Chapters read today">
-        <strong id="todayCount">0</strong>
-        <span class="stat-label">today</span>
-      </div>
-    </div>
-
     <div class="list-wrap" id="listWrap">
-      <!-- Empty state with more character -->
       <div class="empty-state" id="emptyState">
-        <div class="empty-ornament">✦ ✦ ✦</div>
+        <div class="empty-ornament">&#10022; &#10022; &#10022;</div>
         <div class="empty-title">No chapters tracked yet</div>
         <div class="empty-sub">Open any supported site<br>and start reading to begin</div>
       </div>
     </div>
-
   </div>
 
-  <!-- ══ Settings Panel ══ -->
   <div class="panel" id="settingsPanel">
     <div class="settings-body">
+      <div class="setting-section">
+        <span class="setting-label">Reading stats</span>
+        <div class="stats-bar settings-stats">
+          <div class="stat" title="Total chapters read across all time">
+            <span class="stat-icon">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 3C2 2.45 2.45 2 3 2H7C7.55 2 8 2.45 8 3V13C8 13 6.5 12 5 12H3C2.45 12 2 11.55 2 11V3Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+                <path d="M14 3C14 2.45 13.55 2 13 2H9C8.45 2 8 2.45 8 3V13C8 13 9.5 12 11 12H13C13.55 12 14 11.55 14 11V3Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+                <line x1="4" y1="5" x2="6" y2="5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+                <line x1="4" y1="7" x2="6" y2="7" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+                <line x1="10" y1="5" x2="12" y2="5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+                <line x1="10" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <div>
+              <strong id="totalChaptersRead">0</strong>
+              <span class="stat-label">Ch Read</span>
+            </div>
+          </div>
+
+          <div class="stat" title="Current daily reading streak">
+            <span class="stat-icon">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6.5 9.5L9.5 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                <path d="M5.5 7.5L3.5 9.5C2.67 10.33 2.67 11.67 3.5 12.5C4.33 13.33 5.67 13.33 6.5 12.5L8.5 10.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+                <path d="M10.5 8.5L12.5 6.5C13.33 5.67 13.33 4.33 12.5 3.5C11.67 2.67 10.33 2.67 9.5 3.5L7.5 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+              </svg>
+            </span>
+            <div>
+              <strong id="readingStreak">0</strong>
+              <span class="stat-label">Day Streak</span>
+            </div>
+          </div>
+
+          <div class="stat" title="Total manhwa being tracked">
+            <div>
+              <strong id="totalCount">0</strong>
+              <span class="stat-label">Titles</span>
+            </div>
+          </div>
+
+          <div class="stat" title="Chapters read today">
+            <div>
+              <strong id="todayCount">0</strong>
+              <span class="stat-label">Today</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="setting-section">
         <span class="setting-label">Appearance</span>
         <div class="theme-row">
-          <button class="theme-opt selected" data-mode="light" id="lightOpt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#a)" fill="currentColor"><path d="M12 0a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V1a1 1 0 0 1 1-1ZM4.929 3.515a1 1 0 0 0-1.414 1.414l2.828 2.828a1 1 0 0 0 1.414-1.414L4.93 3.515ZM1 11a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2H1ZM18 12a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2h-4a1 1 0 0 1-1-1ZM17.657 16.243a1 1 0 0 0-1.414 1.414l2.828 2.828a1 1 0 1 0 1.414-1.414l-2.828-2.828ZM7.757 17.657a1 1 0 1 0-1.414-1.414L3.515 19.07a1 1 0 1 0 1.414 1.414l2.828-2.828ZM20.485 4.929a1 1 0 0 0-1.414-1.414l-2.828 2.828a1 1 0 1 0 1.414 1.414l2.828-2.828ZM13 19a1 1 0 1 0-2 0v4a1 1 0 1 0 2 0v-4ZM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"/></g><defs><clipPath id="a"><path fill="#ffffff" d="M0 0h24v24H0z"/></clipPath></defs></svg> Light</button>
-          <button class="theme-opt" data-mode="dark" id="darkOpt"><svg width="14" height="14" viewBox="0 0 35 35" data-name="Layer 2" id="Layer_2" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M18.44,34.68a18.22,18.22,0,0,1-2.94-.24,18.18,18.18,0,0,1-15-20.86A18.06,18.06,0,0,1,9.59.63,2.42,2.42,0,0,1,12.2.79a2.39,2.39,0,0,1,1,2.41L11.9,3.1l1.23.22A15.66,15.66,0,0,0,23.34,21h0a15.82,15.82,0,0,0,8.47.53A2.44,2.44,0,0,1,34.47,25,18.18,18.18,0,0,1,18.44,34.68ZM10.67,2.89a15.67,15.67,0,0,0-5,22.77A15.66,15.66,0,0,0,32.18,24a18.49,18.49,0,0,1-9.65-.64A18.18,18.18,0,0,1,10.67,2.89Z"/></svg> Dark</button>
+          <button class="theme-opt" data-mode="light" id="lightOpt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#a)" fill="currentColor"><path d="M12 0a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V1a1 1 0 0 1 1-1ZM4.929 3.515a1 1 0 0 0-1.414 1.414l2.828 2.828a1 1 0 0 0 1.414-1.414L4.93 3.515ZM1 11a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2H1ZM18 12a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2h-4a1 1 0 0 1-1-1ZM17.657 16.243a1 1 0 0 0-1.414 1.414l2.828 2.828a1 1 0 1 0 1.414-1.414l-2.828-2.828ZM7.757 17.657a1 1 0 1 0-1.414-1.414L3.515 19.07a1 1 0 1 0 1.414 1.414l2.828-2.828ZM20.485 4.929a1 1 0 0 0-1.414-1.414l-2.828 2.828a1 1 0 1 0 1.414 1.414l2.828-2.828ZM13 19a1 1 0 1 0-2 0v4a1 1 0 1 0 2 0v-4ZM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"/></g><defs><clipPath id="a"><path fill="#ffffff" d="M0 0h24v24H0z"/></clipPath></defs></svg> Light</button>
+          <button class="theme-opt selected" data-mode="dark" id="darkOpt"><svg width="14" height="14" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M18.44,34.68a18.22,18.22,0,0,1-2.94-.24,18.18,18.18,0,0,1-15-20.86A18.06,18.06,0,0,1,9.59.63,2.42,2.42,0,0,1,12.2.79a2.39,2.39,0,0,1,1,2.41L11.9,3.1l1.23.22A15.66,15.66,0,0,0,23.34,21h0a15.82,15.82,0,0,0,8.47.53A2.44,2.44,0,0,1,34.47,25,18.18,18.18,0,0,1,18.44,34.68ZM10.67,2.89a15.67,15.67,0,0,0-5,22.77A15.66,15.66,0,0,0,32.18,24a18.49,18.49,0,0,1-9.65-.64A18.18,18.18,0,0,1,10.67,2.89Z"/></svg> Dark</button>
         </div>
-        <div class="setting-hint">Warm paper or late-night dark — persisted across sessions.</div>
+        <div class="setting-hint">Choose the look you prefer. Your theme stays saved across sessions.</div>
       </div>
 
       <div class="setting-section">
-        <span class="setting-label">Data Management</span>
+        <span class="setting-label">Data management</span>
         <div class="theme-row">
-          <button class="export-btn btn-flex" id="exportBtn"><span>Export JSON</span><span>↓</span></button>
-          <button class="export-btn btn-flex" id="importBtn"><span>Import JSON</span><span>↑</span></button>
+          <button class="export-btn btn-flex" id="exportBtn"><span>Export JSON</span><span>&darr;</span></button>
+          <button class="export-btn btn-flex" id="importBtn"><span>Import JSON</span><span>&uarr;</span></button>
           <input type="file" id="importFile" accept=".json" class="input-hidden">
         </div>
         <div class="setting-hint">Back up or restore your reading list. Import merges with existing data.</div>
         <p id="importStatus" class="import-status"></p>
 
-        <!-- Storage usage — prominent block -->
         <div class="storage-block">
           <div class="storage-top">
-            <div class="storage-used" id="storageUsed">—<span>MB used</span></div>
+            <div class="storage-used" id="storageUsed">&mdash;<span>MB used</span></div>
             <div class="storage-total" id="storageTotal">of 10 MB</div>
           </div>
           <div class="storage-bar-wrap">
-            <div class="storage-bar" id="storageBar"></div>
+            <progress class="storage-bar" id="storageBar" max="100" value="0"></progress>
           </div>
-          <div class="storage-pct" id="storagePct">calculating…</div>
+          <div class="storage-pct" id="storagePct">calculating...</div>
         </div>
       </div>
 
       <div class="setting-section">
-        <span class="setting-label">Supported Sites</span>
+        <span class="setting-label">Supported sites</span>
         <div class="site-grid">
-          <span class="site-tag">Webtoon</span>
-          <span class="site-tag">Asura Scans</span>
-          <span class="site-tag">Reaper Scans</span>
-          <span class="site-tag">ToonGod</span>
-          <span class="site-tag">Toonily</span>
-          <span class="site-tag">Mangafire</span>
-          <span class="site-tag">Flame Comics</span>
-          <span class="site-tag">KunManga</span>
-          <span class="site-tag">Manhwa Clan</span>
-          <span class="site-tag">Manhua US</span>
-          <span class="site-tag">Hive Toons</span>
-          <span class="site-tag">Manta</span>
-          <span class="site-tag">Tapas</span>
-          <span class="site-tag">Tappytoon</span>
-          <span class="site-tag">Manhwa Top</span>
-          <span class="site-tag">King of Shojo</span>
+          <button class="site-tag" type="button" data-site-url="https://www.webtoons.com/">Webtoon</button>
+          <button class="site-tag" type="button" data-site-url="https://asuracomic.net/">Asura Scans</button>
+          <button class="site-tag" type="button" data-site-url="https://reaperscans.com/">Reaper Scans</button>
+          <button class="site-tag" type="button" data-site-url="https://toongod.org/">ToonGod</button>
+          <button class="site-tag" type="button" data-site-url="https://toonily.com/">Toonily</button>
+          <button class="site-tag" type="button" data-site-url="https://mangafire.to/">Mangafire</button>
+          <button class="site-tag" type="button" data-site-url="https://flamecomics.xyz/">Flame Comics</button>
+          <button class="site-tag" type="button" data-site-url="https://kunmanga.com/">KunManga</button>
+          <button class="site-tag" type="button" data-site-url="https://manhwaclan.com/">Manhwa Clan</button>
+          <button class="site-tag" type="button" data-site-url="https://manhuaus.com/">Manhua US</button>
+          <button class="site-tag" type="button" data-site-url="https://hivetoons.org/">Hive Toons</button>
+          <button class="site-tag" type="button" data-site-url="https://manta.net/">Manta</button>
+          <button class="site-tag" type="button" data-site-url="https://tapas.io/">Tapas</button>
+          <button class="site-tag" type="button" data-site-url="https://www.tappytoon.com/">Tappytoon</button>
+          <button class="site-tag" type="button" data-site-url="https://manhwatop.com/">Manhwa Top</button>
+          <button class="site-tag" type="button" data-site-url="https://kingofshojo.com/">King of Shojo</button>
         </div>
       </div>
-
     </div>
   </div>
-
 </div>
 
 <script src="src/popup.js"></script>

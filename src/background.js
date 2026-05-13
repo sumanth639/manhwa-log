@@ -154,8 +154,7 @@ async function updateProgress(data) {
     cover: data.cover || (idx >= 0 ? (list[idx].cover || null) : null),
     updatedAt: data.timestamp,
     addedAt: idx >= 0 ? list[idx].addedAt : data.timestamp,
-    sources: idx >= 0 ? (list[idx].sources || []) : [],
-    history: idx >= 0 ? (list[idx].history || []) : []
+    sources: idx >= 0 ? (list[idx].sources || []) : []
   };
 
   // Keep the current site first so the popup can show a stable primary source
@@ -179,13 +178,7 @@ async function updateProgress(data) {
       if (!coverUpdated) return;
     }
 
-    // Retain a short audit trail of chapter progression for the popup history UI.
-    if (existing.lastChapter !== data.chapter) {
-      updatedEntry.history = [
-        { chapter: existing.lastChapter, url: existing.lastURL, ts: existing.updatedAt },
-        ...existing.history
-      ].slice(0, 20);
-    }
+
     list[idx] = updatedEntry;
   } else {
     list.unshift(updatedEntry);
@@ -265,7 +258,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   // Detection reports from the content script funnel through one update path
-  // so deduplication, history, analytics, and badges stay in sync.
+  // so deduplication, analytics, and badges stay in sync.
   if (message.type === "CHAPTER_DETECTED") {
     updateProgress(message.data).then(entry => {
       sendResponse({ success: true, entry });
