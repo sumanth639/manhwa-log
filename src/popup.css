@@ -231,7 +231,7 @@ body {
 }
 
 .sort-select {
-  width: 92px;
+  width: 116px;
   height: 38px;
   padding: 0 10px;
   font-size: 11px;
@@ -413,7 +413,25 @@ body {
 }
 
 .cover-progress-bar {
+  width: 100%;
   height: 100%;
+  display: block;
+  overflow: hidden;
+  border: none;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.cover-progress-bar::-webkit-progress-bar {
+  background: transparent;
+}
+
+.cover-progress-bar::-webkit-progress-value {
+  background: var(--accent);
+}
+
+.cover-progress-bar::-moz-progress-bar {
   background: var(--accent);
 }
 
@@ -519,6 +537,59 @@ body {
   background: transparent;
   color: var(--text-faint);
   text-transform: none;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  min-height: 21px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.status-pill[data-status="reading"] {
+  color: var(--accent);
+  background: rgba(234, 116, 47, 0.12);
+  border-color: rgba(234, 116, 47, 0.33);
+}
+
+.app.light .status-pill[data-status="reading"] {
+  background: rgba(230, 106, 44, 0.12);
+  border-color: rgba(230, 106, 44, 0.33);
+}
+
+.status-pill[data-status="onhold"] {
+  color: #d9a341;
+  background: rgba(217, 163, 65, 0.12);
+  border-color: rgba(217, 163, 65, 0.33);
+}
+
+.status-pill[data-status="dropped"] {
+  color: var(--danger);
+  background: rgba(224, 103, 80, 0.12);
+  border-color: rgba(224, 103, 80, 0.33);
+}
+
+.app.light .status-pill[data-status="dropped"] {
+  background: rgba(181, 68, 47, 0.1);
+  border-color: rgba(181, 68, 47, 0.28);
+}
+
+.status-pill[data-status="completed"] {
+  color: var(--success);
+  background: rgba(89, 187, 130, 0.12);
+  border-color: rgba(89, 187, 130, 0.33);
+}
+
+.app.light .status-pill[data-status="completed"] {
+  background: rgba(45, 138, 86, 0.1);
+  border-color: rgba(45, 138, 86, 0.28);
 }
 
 .source-toggle {
@@ -875,32 +946,4 @@ body {
 
 .import-status.is-error {
   color: var(--danger);
-}
-
-.stab {
-  flex-shrink: 0;
-  padding: 4px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-faint);
-  font-family: inherit;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
-  margin-bottom: 8px;
-}
-
-.stab:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.stab.active {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
 }

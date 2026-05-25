@@ -41,13 +41,6 @@
   </div>
 
   <div class="panel active" id="readingPanel">
-    <div class="status-tabs" style="display:flex;gap:4px;padding:8px 16px 0;background:var(--bg);overflow-x:auto;">
-      <button class="stab active" data-status="all">All</button>
-      <button class="stab" data-status="reading">Reading</button>
-      <button class="stab" data-status="onhold">On Hold</button>
-      <button class="stab" data-status="dropped">Dropped</button>
-      <button class="stab" data-status="completed">Completed</button>
-    </div>
     <div class="toolbar">
       <div class="search-wrap">
         <span class="search-icon">&#8981;</span>
@@ -56,6 +49,10 @@
       <select class="sort-select" id="sortSelect">
         <option value="recent">Recent</option>
         <option value="chapter">Chapter</option>
+        <option value="reading">Reading</option>
+        <option value="onhold">On Hold</option>
+        <option value="dropped">Dropped</option>
+        <option value="completed">Completed</option>
       </select>
     </div>
 
