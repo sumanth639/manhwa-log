@@ -166,7 +166,7 @@ function loadData() {
   });
 }
 
-function render() {
+async function render() {
   let list = [...allManhwa];
 
   if (searchQuery) {
@@ -210,7 +210,7 @@ function render() {
 
   emptyState.classList.add("is-hidden");
 
-  list.forEach((entry) => {
+  for (const entry of list) {
     const card = document.createElement("div");
     card.className = "card";
 
@@ -220,7 +220,17 @@ function render() {
     const hash = entry.title.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
     const pseudoMax = Math.max(entry.lastChapter + (hash % 40) + 5, 80);
     const progressPct = Math.min((entry.lastChapter / pseudoMax) * 100, 100);
-    const resumeLabel = isRecent ? `Continue Ch. ${entry.lastChapter}` : `Resume Ch. ${entry.lastChapter}`;
+    const scrollPct = await new Promise((resolve) => {
+      chrome.storage.local.get(`scroll::${entry.lastURL}`, (res) => {
+        resolve(res[`scroll::${entry.lastURL}`] || 0);
+      });
+    });
+    const resumeLabel =
+      scrollPct > 0.02
+        ? `Continue Ch. ${entry.lastChapter} · ${Math.round(scrollPct * 100)}%`
+        : (isRecent
+            ? `Continue Ch. ${entry.lastChapter}`
+            : `Resume Ch. ${entry.lastChapter}`);
 
     card.innerHTML = `
       ${entry.cover ? `
@@ -347,7 +357,7 @@ function render() {
     });
 
     listWrap.appendChild(card);
-  });
+  }
 }
 
 document

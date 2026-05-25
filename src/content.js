@@ -599,3 +599,33 @@ function setupDOMObserver() {
 
 setupDOMObserver();
 triggerDetection();
+
+// ------------------------------------------------------------
+// Scroll Position Memory
+// ------------------------------------------------------------
+
+const SCROLL_KEY = `scroll::${location.href}`;
+
+function saveScrollPosition() {
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  if (total <= 0) return;
+  const pct = window.scrollY / total;
+  chrome.storage.local.set({ [SCROLL_KEY]: pct });
+}
+
+async function restoreScrollPosition() {
+  const result = await chrome.storage.local.get(SCROLL_KEY);
+  const pct = result[SCROLL_KEY];
+  if (!pct || pct < 0.02) return;
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  window.scrollTo({ top: pct * total, behavior: "smooth" });
+}
+
+// Save every 3 seconds while reading
+setInterval(saveScrollPosition, 3000);
+
+// Also save immediately when user leaves the page
+window.addEventListener("pagehide", saveScrollPosition);
+
+// Restore after page fully loads (wait for images to render)
+window.addEventListener("load", () => setTimeout(restoreScrollPosition, 1500));

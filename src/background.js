@@ -214,7 +214,16 @@ async function updateProgress(data) {
 // Storage Quota Guard
 // ------------------------------------------------------------
 
+async function pruneScrollKeys() {
+  const all = await chrome.storage.local.get(null);
+  const keys = Object.keys(all).filter((k) => k.startsWith("scroll::"));
+  if (keys.length > 300) {
+    await chrome.storage.local.remove(keys.slice(0, keys.length - 300));
+  }
+}
+
 async function checkStorageQuota() {
+  await pruneScrollKeys();
   const bytesInUse = await chrome.storage.local.getBytesInUse(null);
   if (bytesInUse > 8_000_000) {
     chrome.action.setBadgeText({ text: "!" });
