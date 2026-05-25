@@ -145,6 +145,8 @@ async function updateProgress(data) {
   const updatedEntry = {
     id: idx >= 0 ? list[idx].id : Date.now().toString(),
     title: idx >= 0 ? list[idx].title : cleanTitle,
+    status: idx >= 0 ? (list[idx].status || "reading") : "reading",
+    pinned: idx >= 0 ? (list[idx].pinned || false) : false,
     lastChapter: data.chapter,
     lastURL: data.url,
     nextURL: data.nextURL || null,
@@ -346,6 +348,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "GET_ANALYTICS") {
     getAnalytics().then(analytics => sendResponse({ analytics }));
+    return true;
+  }
+
+  if (message.type === "UPDATE_ENTRY_FIELD") {
+    getList().then(async list => {
+      const idx = list.findIndex(item => item.id === message.id);
+      if (idx >= 0) {
+        list[idx] = { ...list[idx], [message.field]: message.value };
+        await saveList(list);
+      }
+      sendResponse({ success: true });
+    });
     return true;
   }
 });

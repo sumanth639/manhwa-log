@@ -7,6 +7,7 @@
 let allManhwa = [];
 let searchQuery = "";
 let sortType = "recent";
+let filterStatus = "all";
 let isDark = true;
 
 const app = document.getElementById("app");
@@ -175,11 +176,15 @@ async function render() {
     );
   }
 
-  if (sortType === "chapter") {
-    list.sort((a, b) => (b.lastChapter || 0) - (a.lastChapter || 0));
-  } else {
-    list.sort((a, b) => b.updatedAt - a.updatedAt);
+  if (filterStatus !== "all") {
+    list = list.filter((entry) => (entry.status || "reading") === filterStatus);
   }
+
+  list.sort((a, b) => {
+    if (b.pinned !== a.pinned) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+    if (sortType === "chapter") return (b.lastChapter || 0) - (a.lastChapter || 0);
+    return b.updatedAt - a.updatedAt;
+  });
 
   const totalCount = document.getElementById("totalCount");
   const todayCount = document.getElementById("todayCount");
@@ -232,6 +237,11 @@ async function render() {
             ? `Continue Ch. ${entry.lastChapter}`
             : `Resume Ch. ${entry.lastChapter}`);
 
+    const isPinned = entry.pinned || false;
+    const status = entry.status || "reading";
+    const statusLabels = { reading: "Reading", onhold: "On Hold", dropped: "Dropped", completed: "Completed" };
+    const statusColors = { reading: "var(--accent)", onhold: "#d9a341", dropped: "var(--danger)", completed: "var(--success)" };
+
     card.innerHTML = `
       ${entry.cover ? `
         <div class="cover-wrap">
@@ -243,11 +253,13 @@ async function render() {
       ` : ""}
       <div class="card-body">
         <div class="card-header">
+          <button class="pin-btn" data-id="${entry.id}" title="${isPinned ? "Unpin" : "Pin to top"}" style="border:none;background:transparent;cursor:pointer;padding:0 4px 0 0;color:${isPinned ? "var(--accent)" : "var(--text-faint)"};font-size:14px;opacity:${isPinned ? "1" : "0"};transition:opacity 0.16s ease,color 0.16s ease;">&#9679;</button>
           <div class="card-title-text" title="${entry.title}">${entry.title}</div>
           <button class="card-del" data-id="${entry.id}" aria-label="Delete entry">&times;</button>
         </div>
         <div class="card-meta">
           <span class="pill pill-ch">Ch. ${entry.lastChapter}</span>
+          <span class="status-pill" data-status="${status}" style="background:${statusColors[status]}22;color:${statusColors[status]};border:1px solid ${statusColors[status]}55;display:inline-flex;align-items:center;padding:0 7px;min-height:21px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;" title="Click to change status">${statusLabels[status]}</span>
           <span class="site-text">${normalizeSite(sources[0]?.site || entry.site)}</span>
           ${
             extraSources > 0
@@ -314,6 +326,25 @@ async function render() {
       );
     });
 
+    card.querySelector(".pin-btn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      const newVal = !entry.pinned;
+      chrome.runtime.sendMessage(
+        { type: "UPDATE_ENTRY_FIELD", id: entry.id, field: "pinned", value: newVal },
+        loadData,
+      );
+    });
+
+    card.querySelector(".status-pill").addEventListener("click", (event) => {
+      event.stopPropagation();
+      const cycle = { reading: "onhold", onhold: "dropped", dropped: "completed", completed: "reading" };
+      const newStatus = cycle[entry.status || "reading"];
+      chrome.runtime.sendMessage(
+        { type: "UPDATE_ENTRY_FIELD", id: entry.id, field: "status", value: newStatus },
+        loadData,
+      );
+    });
+
     card.querySelector(".continue-btn").addEventListener("click", (event) => {
       event.stopPropagation();
       chrome.tabs.create({ url: entry.lastURL });
@@ -341,6 +372,15 @@ async function render() {
         const url = button.dataset.url;
         if (url) chrome.tabs.create({ url });
       });
+    });
+
+    card.addEventListener("mouseenter", () => {
+      const pin = card.querySelector(".pin-btn");
+      if (pin && !entry.pinned) pin.style.opacity = "1";
+    });
+    card.addEventListener("mouseleave", () => {
+      const pin = card.querySelector(".pin-btn");
+      if (pin && !entry.pinned) pin.style.opacity = "0";
     });
 
     card.addEventListener("click", (event) => {
@@ -495,4 +535,12 @@ document
 
 showPanel("reading");
 loadData();
+document.querySelectorAll(".stab").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".stab").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    filterStatus = btn.dataset.status;
+    render();
+  });
+});
 updateStorageMeter();
