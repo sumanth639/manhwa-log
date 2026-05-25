@@ -170,7 +170,6 @@ async function updateProgress(data) {
   if (idx >= 0) {
     const existing = list[idx];
     prevChapter = existing.lastChapter;
-    if (data.chapter < existing.lastChapter) return;
     if (data.chapter === existing.lastChapter && data.url === existing.lastURL) {
       // Always proceed if we now have a cover that wasn't stored before, or if it changed.
       // (This fixes the case where an old, incorrect og:image logo was previously saved).
