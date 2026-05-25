@@ -13,6 +13,10 @@ let debounceTimer;
 let lastFingerprint = null;
 let lastSentAt = 0;
 
+function hasExtensionContext() {
+  return typeof chrome !== "undefined" && !!chrome.runtime?.id;
+}
+
 // ------------------------------------------------------------
 // Title Normalization
 // ------------------------------------------------------------
@@ -110,8 +114,13 @@ function handleTapas() {
 // Manta data is exposed through a page-owned data layer, so the content
 // script asks the background worker to read it from the page context.
 async function getMantaData() {
+  if (!hasExtensionContext()) return null;
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ type: "GET_MANTA_DATA" }, resolve);
+    try {
+      chrome.runtime.sendMessage({ type: "GET_MANTA_DATA" }, resolve);
+    } catch {
+      resolve(null);
+    }
   });
 }
 
@@ -535,7 +544,7 @@ function getFingerprint(data) {
 }
 
 function report(data) {
-  if (!data) return;
+  if (!data || !hasExtensionContext()) return;
 
   const fp = getFingerprint(data);
   const now = Date.now();
@@ -549,7 +558,11 @@ function report(data) {
   lastFingerprint = fp;
   lastSentAt = now;
 
-  chrome.runtime.sendMessage({ type: "CHAPTER_DETECTED", data });
+  try {
+    chrome.runtime.sendMessage({ type: "CHAPTER_DETECTED", data });
+  } catch {
+    // Ignore calls from stale content scripts after an extension reload.
+  }
 }
 
 async function triggerDetection() {
@@ -562,11 +575,13 @@ async function triggerDetection() {
 }
 
 // Browser-level URL changes are forwarded by the background worker.
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === "URL_CHANGED") {
-    triggerDetection();
-  }
-});
+if (hasExtensionContext()) {
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg.type === "URL_CHANGED") {
+      triggerDetection();
+    }
+  });
+}
 
 // Native back/forward navigation can change the chapter without a full reload.
 window.addEventListener("popstate", triggerDetection);
@@ -607,14 +622,25 @@ triggerDetection();
 const SCROLL_KEY = `scroll::${location.href}`;
 
 function saveScrollPosition() {
+  if (!hasExtensionContext()) return;
   const total = document.documentElement.scrollHeight - window.innerHeight;
   if (total <= 0) return;
   const pct = window.scrollY / total;
-  chrome.storage.local.set({ [SCROLL_KEY]: pct });
+  try {
+    chrome.storage.local.set({ [SCROLL_KEY]: pct });
+  } catch {
+    // Ignore calls from stale content scripts after an extension reload.
+  }
 }
 
 async function restoreScrollPosition() {
-  const result = await chrome.storage.local.get(SCROLL_KEY);
+  if (!hasExtensionContext()) return;
+  let result;
+  try {
+    result = await chrome.storage.local.get(SCROLL_KEY);
+  } catch {
+    return;
+  }
   const pct = result[SCROLL_KEY];
   if (!pct || pct < 0.02) return;
   const total = document.documentElement.scrollHeight - window.innerHeight;
