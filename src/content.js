@@ -307,7 +307,7 @@ async function genericDetect() {
   // Step 2: choose the best candidate slug for the series title.
   const segments = path.split("/").filter(Boolean);
   const IGNORE_WORDS = ["manga", "manhwa", "manhua", "webtoon", "comic", "read", "series", "mangas", "comics", "manhwas", "webtoons"];
-  const KEYWORDS = ["manga", "series", "webtoon", "comic", "manhwa"];
+  const KEYWORDS = ["manga", "series", "webtoon", "comic", "manhwa", "comics"];
 
   let titleSlug = "";
 
@@ -338,6 +338,9 @@ async function genericDetect() {
   if (!titleSlug && segments.length > 0) {
     titleSlug = segments[0];
   }
+
+  // Strip trailing hash suffixes like -7b57f74d used by Asura and similar sites
+  titleSlug = titleSlug.replace(/-[a-f0-9]{6,12}$/i, "");
 
   // Step 3: normalize the slug into a readable title.
   const title = cleanTitle(titleSlug.replace(/[-_]/g, " "));
