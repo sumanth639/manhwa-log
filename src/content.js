@@ -47,6 +47,17 @@ function toTitleCase(str) {
   return str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 }
 
+function formatSlug(slug) {
+  if (!slug) return "";
+  return slug.replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase()).trim();
+}
+
+function extractNumber(str) {
+  if (!str) return null;
+  const match = str.match(/(\d+(\.\d+)?)/);
+  return match ? parseFloat(match[1]) : null;
+}
+
 // ------------------------------------------------------------
 // Site-Specific Detectors
 // ------------------------------------------------------------
@@ -643,8 +654,29 @@ async function restoreScrollPosition() {
   }
   const pct = result[SCROLL_KEY];
   if (!pct || pct < 0.02) return;
-  const total = document.documentElement.scrollHeight - window.innerHeight;
-  window.scrollTo({ top: pct * total, behavior: "smooth" });
+  await autoScrollToPercent(pct);
+}
+
+async function autoScrollToPercent(pct) {
+  const start = Date.now();
+  let lastHeight = 0;
+
+  while (Date.now() - start < 8000) {
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    if (total <= 0) return;
+
+    const target = pct * total;
+    window.scrollTo({ top: target, behavior: "smooth" });
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const currentHeight = document.documentElement.scrollHeight;
+    const isClose = Math.abs(window.scrollY - target) < 24;
+    const heightSettled = currentHeight === lastHeight;
+    if (isClose && heightSettled) return;
+
+    lastHeight = currentHeight;
+  }
 }
 
 // Save every 3 seconds while reading

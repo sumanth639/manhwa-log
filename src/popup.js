@@ -7,6 +7,7 @@
 let allManhwa = [];
 let searchQuery = "";
 let sortType = "recent";
+let filterStatus = "all";
 let isDark = true;
 
 const app = document.getElementById("app");
@@ -136,7 +137,9 @@ function loadData() {
     const settings = settingsRes?.settings;
     if (settings) {
       if (settings.sortType) {
-        sortType = settings.sortType;
+        sortType = ["recent", "chapter"].includes(settings.sortType)
+          ? settings.sortType
+          : "recent";
         const select = document.getElementById("sortSelect");
         if (select) select.value = sortType;
       }
@@ -175,9 +178,8 @@ async function render() {
     );
   }
 
-  const isStatusFilter = ["reading", "onhold", "dropped", "completed"].includes(sortType);
-  if (isStatusFilter) {
-    list = list.filter((entry) => (entry.status || "reading") === sortType);
+  if (filterStatus !== "all") {
+    list = list.filter((entry) => (entry.status || "reading") === filterStatus);
   }
 
   list.sort((a, b) => {
@@ -325,7 +327,14 @@ async function render() {
       const idx = allManhwa.findIndex(e => e.id === entry.id);
       if (idx >= 0) allManhwa[idx].status = newStatus;
       chrome.runtime.sendMessage({ type: "UPDATE_ENTRY_FIELD", id: entry.id, field: "status", value: newStatus });
-      render();
+      const pill = event.currentTarget;
+      const statusLabels = { reading: "Reading", onhold: "On Hold", dropped: "Dropped", completed: "Completed" };
+      pill.dataset.status = newStatus;
+      pill.textContent = statusLabels[newStatus];
+      if (filterStatus !== "all" && filterStatus !== newStatus) {
+        card.classList.add("is-exiting");
+        setTimeout(() => render(), 220);
+      }
     });
 
     card.querySelector(".continue-btn").addEventListener("click", (event) => {
@@ -400,7 +409,15 @@ document.getElementById("searchInput").addEventListener("input", (event) => {
 });
 
 document.getElementById("sortSelect").addEventListener("change", (event) => {
-  sortType = event.target.value;
+  const val = event.target.value;
+  const statusValues = ["reading", "onhold", "dropped", "completed"];
+  if (statusValues.includes(val)) {
+    filterStatus = val;
+    sortType = "recent";
+  } else {
+    filterStatus = "all";
+    sortType = val;
+  }
   chrome.runtime.sendMessage({
     type: "SAVE_SETTINGS",
     settings: { isDark, sortType },

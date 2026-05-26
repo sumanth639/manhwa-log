@@ -231,7 +231,7 @@ body {
 }
 
 .sort-select {
-  width: 116px;
+  width: 128px;
   height: 38px;
   padding: 0 10px;
   font-size: 11px;
@@ -374,7 +374,13 @@ body {
   transition:
     border-color 0.16s ease,
     background 0.16s ease,
+    opacity 0.2s ease,
     transform 0.16s ease;
+}
+
+.card.is-exiting {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 
 .card:hover {
