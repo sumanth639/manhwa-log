@@ -231,12 +231,9 @@ async function render() {
         resolve(res[`scroll::${entry.lastURL}`] || 0);
       });
     });
-    const resumeLabel =
-      scrollPct > 0.02
-        ? `Continue Ch. ${entry.lastChapter} · ${Math.round(scrollPct * 100)}%`
-        : (isRecent
-            ? `Continue Ch. ${entry.lastChapter}`
-            : `Resume Ch. ${entry.lastChapter}`);
+    const resumeLabel = scrollPct > 0.02
+      ? `Continue Ch. ${entry.lastChapter} · ${Math.round(scrollPct * 100)}%`
+      : `Continue Ch. ${entry.lastChapter}`;
 
     const status = entry.status || "reading";
     const statusLabels = { reading: "Reading", onhold: "On Hold", dropped: "Dropped", completed: "Completed" };
