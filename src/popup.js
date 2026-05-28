@@ -16,6 +16,7 @@ const emptyState = document.getElementById("emptyState");
 
 const panels = {
   reading: document.getElementById("readingPanel"),
+  find: document.getElementById("findPanel"),
   settings: document.getElementById("settingsPanel"),
 };
 
@@ -40,6 +41,11 @@ function showPanel(id) {
 
   const settingsToggle = document.getElementById("settingsToggle");
   const backBtn = document.getElementById("headerBackBtn");
+
+  // Sync main-tab active state
+  document.querySelectorAll(".main-tab").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === id);
+  });
 
   if (id === "settings") {
     settingsToggle.hidden = true;
@@ -524,3 +530,118 @@ document
 showPanel("reading");
 loadData();
 updateStorageMeter();
+
+// Main tab switching (My List / Find)
+document.querySelectorAll(".main-tab").forEach((btn) => {
+  btn.addEventListener("click", () => showPanel(btn.dataset.tab));
+});
+
+// ================================================================
+// Find Panel — Cross-site search
+// ================================================================
+
+const findInput   = document.getElementById("findInput");
+const findBtn     = document.getElementById("findBtn");
+const findClear   = document.getElementById("findClear");
+const findResults = document.getElementById("findResults");
+const findState   = document.getElementById("findState");
+const findLoading = document.getElementById("findLoading");
+
+const FIND_INITIAL_HTML = findState.innerHTML;
+
+function setFindLoading(on) {
+  if (on) {
+    findState.classList.add("is-hidden");
+    findResults.classList.add("is-hidden");
+    findLoading.classList.remove("is-hidden");
+  } else {
+    findLoading.classList.add("is-hidden");
+  }
+}
+
+function renderFindResults(results) {
+  setFindLoading(false);
+
+  if (!results || results.length === 0) {
+    findResults.classList.add("is-hidden");
+    findState.classList.remove("is-hidden");
+    findState.innerHTML = `
+      <div class="find-empty">
+        <div class="find-empty-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="find-empty-title">No results found</div>
+        <div class="find-empty-sub">Try a different title or check your spelling</div>
+      </div>`;
+    return;
+  }
+
+  findState.classList.add("is-hidden");
+  findResults.classList.remove("is-hidden");
+  findResults.innerHTML = "";
+
+  for (const item of results) {
+    const card = document.createElement("div");
+    card.className = "find-card";
+
+    const siteBadges = item.sites
+      .map((s) => `<span class="find-site-badge">${s.site}</span>`)
+      .join("");
+
+    const actions =
+      item.sites.length === 1
+        ? `<button class="find-open-btn" data-url="${item.sites[0].url}">Open &nearr;</button>`
+        : item.sites
+            .map((s) => `<button class="find-source-btn" data-url="${s.url}">${s.site}</button>`)
+            .join("");
+
+    card.innerHTML = `
+      ${item.cover
+        ? `<img class="find-cover" src="${item.cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
+        : `<div class="find-cover-placeholder"></div>`}
+      <div class="find-card-body">
+        <div class="find-card-title">${item.title}</div>
+        <div class="find-card-sites">${siteBadges}</div>
+        ${item.chapters ? `<div class="find-card-meta">${item.chapters} chapters</div>` : ""}
+        <div class="find-card-actions">${actions}</div>
+      </div>`;
+
+    card.querySelectorAll("[data-url]").forEach((btn) => {
+      btn.addEventListener("click", () => chrome.tabs.create({ url: btn.dataset.url }));
+    });
+
+    findResults.appendChild(card);
+  }
+}
+
+function triggerFindSearch() {
+  const query = findInput.value.trim();
+  if (query.length < 2) return;
+
+  setFindLoading(true);
+  chrome.runtime.sendMessage({ type: "SEARCH_SITES", query }, (res) => {
+    renderFindResults(res?.results ?? []);
+  });
+}
+
+findBtn.addEventListener("click", triggerFindSearch);
+
+findInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") triggerFindSearch();
+});
+
+findInput.addEventListener("input", () => {
+  findClear.classList.toggle("is-hidden", findInput.value.length === 0);
+});
+
+findClear.addEventListener("click", () => {
+  findInput.value = "";
+  findClear.classList.add("is-hidden");
+  findResults.classList.add("is-hidden");
+  findLoading.classList.add("is-hidden");
+  findState.classList.remove("is-hidden");
+  findState.innerHTML = FIND_INITIAL_HTML;
+});

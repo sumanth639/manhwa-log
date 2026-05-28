@@ -362,4 +362,133 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true;
   }
+
+  if (message.type === "SEARCH_SITES") {
+    const q = (message.query || "").trim();
+    if (!q) { sendResponse({ results: [] }); return true; }
+    searchAcrossSites(q).then(results => sendResponse({ results }));
+    return true;
+  }
 });
+
+// ------------------------------------------------------------
+// Cross-site search
+// ------------------------------------------------------------
+
+/** Normalise a title for fuzzy comparison */
+function normTitle(t) {
+  return t.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+/** Merge results from multiple adapters, deduping by normalised title */
+async function searchAcrossSites(query) {
+  const adapters = [
+    searchAsura,
+    searchWebtoon,
+    searchToonily,
+    searchManhwaTop,
+    searchManhuaUS,
+    searchKingOfShojo,
+    searchArenascan,
+  ];
+
+  const settled = await Promise.allSettled(adapters.map(fn => fn(query)));
+  /** @type {Map<string, {title:string, cover:string, chapters:string, sites:{site:string, url:string}[]}>} */
+  const map = new Map();
+
+  for (const r of settled) {
+    if (r.status !== "fulfilled") continue;
+    for (const item of r.value) {
+      const key = normTitle(item.title);
+      if (map.has(key)) {
+        map.get(key).sites.push(...item.sites);
+      } else {
+        map.set(key, { ...item });
+      }
+    }
+  }
+
+  return [...map.values()].slice(0, 30);
+}
+
+// --- Asura Scans ------------------------------------------------
+async function searchAsura(q) {
+  const res = await fetch(`https://asurascans.com/?s=${encodeURIComponent(q)}`, { signal: AbortSignal.timeout(8000) });
+  const html = await res.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const items = [];
+  doc.querySelectorAll(".bsx").forEach(el => {
+    const a = el.querySelector("a");
+    const img = el.querySelector("img");
+    const title = el.querySelector(".tt")?.textContent?.trim() || a?.getAttribute("title") || "";
+    if (!title) return;
+    items.push({
+      title,
+      cover: img?.getAttribute("src") || img?.getAttribute("data-src") || "",
+      chapters: "",
+      sites: [{ site: "Asura", url: a?.href || "" }],
+    });
+  });
+  return items;
+}
+
+// --- Webtoon -------------------------------------------------------
+async function searchWebtoon(q) {
+  const url = `https://www.webtoons.com/en/search?keyword=${encodeURIComponent(q)}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  const html = await res.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const items = [];
+  doc.querySelectorAll(".card_lst li").forEach(el => {
+    const a = el.querySelector("a");
+    const img = el.querySelector("img");
+    const title = el.querySelector(".subj")?.textContent?.trim() || "";
+    if (!title) return;
+    items.push({
+      title,
+      cover: img?.getAttribute("src") || "",
+      chapters: "",
+      sites: [{ site: "Webtoon", url: a?.href || "" }],
+    });
+  });
+  return items;
+}
+
+// --- WordPress search helper (used by many MangaReader sites) -------
+async function wpSearch(origin, siteName, q) {
+  const url = `${origin}/?s=${encodeURIComponent(q)}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  const html = await res.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const items = [];
+  doc.querySelectorAll(".bsx, .listupd .bs").forEach(el => {
+    const a = el.querySelector("a");
+    const img = el.querySelector("img");
+    const title = el.querySelector(".tt, .title")?.textContent?.trim() || a?.getAttribute("title") || "";
+    if (!title) return;
+    items.push({
+      title,
+      cover: img?.getAttribute("src") || img?.getAttribute("data-src") || "",
+      chapters: "",
+      sites: [{ site: siteName, url: a?.href || "" }],
+    });
+  });
+  return items;
+}
+
+async function searchToonily(q) { return wpSearch("https://toonily.me", "Toonily", q); }
+async function searchManhwaTop(q) { return wpSearch("https://manhwatop.com", "ManhwaTop", q); }
+async function searchManhuaUS(q) { return wpSearch("https://manhuaus.com", "ManhuaUS", q); }
+async function searchKingOfShojo(q) { return wpSearch("https://kingofshojo.com", "KingOfShojo", q); }
+async function searchArenascan(q) { return wpSearch("https://arenascan.com", "ArenaScan", q); }
+
+// ------------------------------------------------------------
+// Side Panel
+// ------------------------------------------------------------
+
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch(() => {});

@@ -18,6 +18,23 @@
       <div class="logo-sub">Reading Tracker</div>
     </div>
 
+    <div class="main-tabs" id="mainTabs">
+      <button class="main-tab active" id="tabMyList" data-tab="reading">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 3C2 2.45 2.45 2 3 2H7C7.55 2 8 2.45 8 3V13C8 13 6.5 12 5 12H3C2.45 12 2 11.55 2 11V3Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+          <path d="M14 3C14 2.45 13.55 2 13 2H9C8.45 2 8 2.45 8 3V13C8 13 9.5 12 11 12H13C13.55 12 14 11.55 14 11V3Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+        </svg>
+        My List
+      </button>
+      <button class="main-tab" id="tabFind" data-tab="find">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Find
+      </button>
+    </div>
+
     <div class="header-right">
       <button class="hbtn" id="themeToggle" title="Toggle theme">
         <svg class="icon-light" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#a)" fill="currentColor"><path d="M12 0a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V1a1 1 0 0 1 1-1ZM4.929 3.515a1 1 0 0 0-1.414 1.414l2.828 2.828a1 1 0 0 0 1.414-1.414L4.93 3.515ZM1 11a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2H1ZM18 12a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2h-4a1 1 0 0 1-1-1ZM17.657 16.243a1 1 0 0 0-1.414 1.414l2.828 2.828a1 1 0 1 0 1.414-1.414l-2.828-2.828ZM7.757 17.657a1 1 0 1 0-1.414-1.414L3.515 19.07a1 1 0 1 0 1.414 1.414l2.828-2.828ZM20.485 4.929a1 1 0 0 0-1.414-1.414l-2.828 2.828a1 1 0 1 0 1.414 1.414l2.828-2.828ZM13 19a1 1 0 1 0-2 0v4a1 1 0 1 0 2 0v-4ZM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"/></g><defs><clipPath id="a"><path fill="#ffffff" d="M0 0h24v24H0z"/></clipPath></defs></svg>
@@ -63,6 +80,51 @@
         <div class="empty-sub">Open any supported site<br>and start reading to begin</div>
       </div>
     </div>
+  </div>
+
+  <div class="panel" id="findPanel">
+    <div class="find-search-bar">
+      <div class="find-input-wrap">
+        <span class="find-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <input class="find-input" id="findInput" placeholder="Search across all sites…" autocomplete="off" spellcheck="false">
+        <button class="find-clear is-hidden" id="findClear" title="Clear search" aria-label="Clear search">✕</button>
+      </div>
+      <button class="find-btn" id="findBtn">Search</button>
+    </div>
+
+    <div class="find-loading is-hidden" id="findLoading">
+      <div class="find-spinner"></div>
+      <span class="find-loading-text">Searching across sites…</span>
+    </div>
+
+    <div class="find-state" id="findState">
+      <div class="find-empty">
+        <div class="find-empty-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="find-empty-title">Search across 7 sites</div>
+        <div class="find-empty-sub">Type a title and hit Search to find<br>where it's available to read</div>
+        <div class="find-site-pills">
+          <span class="find-site-pill">Asura</span>
+          <span class="find-site-pill">Webtoon</span>
+          <span class="find-site-pill">Toonily</span>
+          <span class="find-site-pill">ManhwaTop</span>
+          <span class="find-site-pill">ManhuaUS</span>
+          <span class="find-site-pill">KingOfShojo</span>
+          <span class="find-site-pill">ArenaScan</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="find-results is-hidden" id="findResults"></div>
   </div>
 
   <div class="panel" id="settingsPanel">
