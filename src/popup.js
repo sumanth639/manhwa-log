@@ -682,8 +682,29 @@ function renderFindResults(results) {
   const query = findInput.value.trim();
   const nQuery = normTitle(query);
 
+  const matchedSites = new Set();
+  for (const item of results) {
+    if (!item.isFallback) {
+      for (const s of item.sites) {
+        matchedSites.add(s.site);
+      }
+    }
+  }
+
+  const activeSearchUrls = {
+    "Asura Scans": `https://asuracomic.net/search?q=${encodeURIComponent(query)}`,
+    "Webtoon": `https://www.webtoons.com/en/search?keyword=${encodeURIComponent(query)}`,
+    "Manta": `https://manta.net/en/search?q=${encodeURIComponent(query)}`,
+    "KingOfShojo": `https://kingofshojo.com/?s=${encodeURIComponent(query)}`,
+    "ArenaScan": `https://arenascan.com/?s=${encodeURIComponent(query)}`
+  };
+
   for (const item of results) {
     if (item.isFallback) {
+      const missingSites = Object.entries(activeSearchUrls)
+        .filter(([siteName]) => !matchedSites.has(siteName))
+        .map(([siteName, url]) => ({ site: siteName, url }));
+      item.sites = [...item.sites, ...missingSites];
       fallbackCards.push(item);
     } else if (normTitle(item.title) === nQuery) {
       exactMatches.push(item);
