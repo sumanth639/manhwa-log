@@ -281,6 +281,33 @@ function handleToonily() {
   return { title, chapter };
 }
 
+function handleArenascan() {
+  const path = location.pathname;
+  const match = path.match(/^\/([^/]+)-([\d.]+)\/?$/);
+  if (!match) return null;
+
+  const slug = match[1];
+  const chapter = parseFloat(match[2]);
+
+  // Try to find the title from breadcrumb or other DOM elements first.
+  const allcLink = document.querySelector(".allc a");
+  let title = allcLink ? allcLink.textContent.trim() : "";
+
+  if (!title) {
+    const breadcrumbs = document.querySelectorAll('[itemprop="itemListElement"] a span');
+    if (breadcrumbs.length >= 2) {
+      title = breadcrumbs[1].textContent.trim();
+    }
+  }
+
+  if (!title) {
+    title = slug.replace(/[-_]/g, " ");
+  }
+
+  return { title, chapter };
+}
+
+
 // ------------------------------------------------------------
 // Generic Fallback Detection
 // ------------------------------------------------------------
@@ -399,6 +426,14 @@ const SERIES_COVER_SITES = {
       const match = location.pathname.match(/\/read\/([^/]+)/);
       return match ? `${location.origin}/manga/${match[1]}` : null;
     }
+  },
+  "arenascan.com": {
+    selector: ".thumb img, .summary_image img",
+    getSeriesUrl: () => {
+      const match = location.pathname.match(/^\/([^/]+)-[\d.]+\/?$/);
+      if (!match) return null;
+      return `${location.origin}/manga/${match[1]}/`;
+    }
   }
 };
 
@@ -498,6 +533,7 @@ async function detect() {
   else if (host.includes("mangafire.to")) data = await handleMangafireWithRetry();
   else if (host.includes("flamecomics.xyz")) data = await handleFlameComicsWithRetry();
   else if (host.includes("toonily.com") || host.includes("toonily.me")) data = handleToonily();
+  else if (host.includes("arenascan.com")) data = handleArenascan();
 
   if (!data && !host.includes("manta.net")) {
     // Manta already has a dedicated extraction path; other sites can use
@@ -523,6 +559,22 @@ async function detect() {
 // Finds the best "next chapter" control currently present on the page so
 // the popup can offer a one-click forward action.
 function findNextChapter() {
+  // First try to find from inline script tags (useful for JS-injected links like Mangareader theme)
+  const scripts = document.querySelectorAll("script");
+  for (let script of scripts) {
+    const text = script.textContent;
+    if (text && text.includes("nextUrl")) {
+      const match = text.match(/"nextUrl"\s*:\s*"([^"]+)"/);
+      if (match) {
+        const url = match[1].replace(/\\/g, "");
+        if (url && !url.includes("#") && url !== location.href) {
+          return url;
+        }
+      }
+    }
+  }
+
+  // Fallback to DOM elements, ensuring we filter out dummy hash links
   const selectors = [
     'a[rel="next"]',
     'a.next',
@@ -541,7 +593,7 @@ function findNextChapter() {
   ];
   for (let sel of selectors) {
     const el = document.querySelector(sel);
-    if (el && el.href && el.href !== location.href) return el.href;
+    if (el && el.href && el.href !== location.href && !el.href.includes("#")) return el.href;
   }
   return null;
 }
