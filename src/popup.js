@@ -10,6 +10,21 @@ let sortType = "recent";
 let filterStatus = "all";
 let isDark = true;
 
+window.handleCoverError = function(img) {
+  try {
+    const fallbacks = JSON.parse(img.dataset.fallbacks || "[]");
+    if (fallbacks.length > 0) {
+      const nextSrc = fallbacks.shift();
+      img.dataset.fallbacks = JSON.stringify(fallbacks);
+      img.src = nextSrc;
+    } else {
+      img.style.display = "none";
+    }
+  } catch (e) {
+    img.style.display = "none";
+  }
+};
+
 const app = document.getElementById("app");
 const listWrap = document.getElementById("listWrap");
 const emptyState = document.getElementById("emptyState");
@@ -611,9 +626,21 @@ function renderFindResults(results) {
             .map((s) => `<button class="find-source-btn" data-url="${s.url}">${s.site}</button>`)
             .join("");
 
+    // Gather and deduplicate covers
+    const covers = [item.cover, ...(item.covers || [])].filter(Boolean);
+    const uniqueCovers = [...new Set(covers)];
+
+    let imgTag = "";
+    if (uniqueCovers.length > 0) {
+      const primary = uniqueCovers[0];
+      const fallbacks = uniqueCovers.slice(1);
+      const fallbacksJson = JSON.stringify(fallbacks).replace(/'/g, "&apos;");
+      imgTag = `<img class="find-cover" src="${primary}" alt="" loading="lazy" data-fallbacks='${fallbacksJson}' onerror="handleCoverError(this);">`;
+    }
+
     card.innerHTML = `
-      <div class="find-cover-container" style="position: relative; width: 52px; height: 72px; flex-shrink: 0; border-radius: 7px; overflow: hidden;">
-        <div class="find-cover-placeholder" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; z-index: 1; display: flex; align-items: center; justify-content: center; color: var(--text-faint);">
+      <div class="find-cover-container">
+        <div class="find-cover-placeholder">
           ${item.isFallback ? `
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -621,7 +648,7 @@ function renderFindResults(results) {
             </svg>
           ` : ""}
         </div>
-        ${item.cover ? `<img class="find-cover" src="${item.cover}" alt="" loading="lazy" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; z-index: 2; object-fit: cover;" onerror="this.style.display='none';">` : ""}
+        ${imgTag}
       </div>
       <div class="find-card-body">
         <div class="find-card-title">${item.title}</div>

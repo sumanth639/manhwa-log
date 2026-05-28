@@ -466,8 +466,21 @@ async function searchAcrossSites(query) {
             existing.sites.push(newSite);
           }
         }
+        if (item.cover) {
+          if (!existing.covers) {
+            existing.covers = [existing.cover].filter(Boolean);
+          }
+          if (!existing.covers.includes(item.cover)) {
+            existing.covers.push(item.cover);
+          }
+          if (!existing.cover) {
+            existing.cover = item.cover;
+          }
+        }
       } else {
-        map.set(key, { ...item });
+        const newItem = { ...item };
+        newItem.covers = newItem.cover ? [newItem.cover] : [];
+        map.set(key, newItem);
       }
     }
   }
