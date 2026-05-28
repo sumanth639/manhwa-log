@@ -10,7 +10,7 @@ let sortType = "recent";
 let filterStatus = "all";
 let isDark = true;
 
-window.handleCoverError = function(img) {
+function handleCoverError(img) {
   try {
     const fallbacks = JSON.parse(img.dataset.fallbacks || "[]");
     if (fallbacks.length > 0) {
@@ -23,7 +23,7 @@ window.handleCoverError = function(img) {
   } catch (e) {
     img.style.display = "none";
   }
-};
+}
 
 const app = document.getElementById("app");
 const listWrap = document.getElementById("listWrap");
@@ -631,7 +631,7 @@ function renderFindResults(results) {
       const primary = uniqueCovers[0];
       const fallbacks = uniqueCovers.slice(1);
       const fallbacksJson = JSON.stringify(fallbacks).replace(/'/g, "&apos;");
-      imgTag = `<img class="find-cover" src="${primary}" alt="" loading="lazy" data-fallbacks='${fallbacksJson}' onerror="handleCoverError(this);">`;
+      imgTag = `<img class="find-cover" src="${primary}" alt="" loading="lazy" data-fallbacks='${fallbacksJson}'>`;
     }
 
     const subtitle = item.isFallback
@@ -655,6 +655,11 @@ function renderFindResults(results) {
         <div class="find-card-meta">${subtitle}</div>
         <div class="find-card-actions">${actions}</div>
       </div>`;
+
+    const img = card.querySelector(".find-cover");
+    if (img) {
+      img.addEventListener("error", () => handleCoverError(img));
+    }
 
     card.querySelectorAll("[data-url]").forEach((btn) => {
       btn.addEventListener("click", () => chrome.tabs.create({ url: btn.dataset.url }));

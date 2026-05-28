@@ -580,7 +580,7 @@ async function searchWebtoon(q) {
       if (!x.title) continue;
       items.push({
         title: x.title,
-        cover: x.thumbnailMobile || "",
+        cover: x.thumbnailMobile ? `https://webtoon-phinf.pstatic.net${x.thumbnailMobile}` : "",
         chapters: "",
         sites: [{ site: "Webtoon", url: `https://www.webtoons.com/en/search?keyword=${encodeURIComponent(x.title)}` }]
       });
