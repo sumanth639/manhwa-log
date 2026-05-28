@@ -634,6 +634,10 @@ function renderFindResults(results) {
       imgTag = `<img class="find-cover" src="${primary}" alt="" loading="lazy" data-fallbacks='${fallbacksJson}' onerror="handleCoverError(this);">`;
     }
 
+    const subtitle = item.isFallback
+      ? "Search on fallback sites"
+      : `Available on ${uniqueSites.length} source${uniqueSites.length > 1 ? "s" : ""}`;
+
     card.innerHTML = `
       <div class="find-cover-container">
         <div class="find-cover-placeholder">
@@ -648,6 +652,7 @@ function renderFindResults(results) {
       </div>
       <div class="find-card-body">
         <div class="find-card-title">${item.title}</div>
+        <div class="find-card-meta">${subtitle}</div>
         <div class="find-card-actions">${actions}</div>
       </div>`;
 
