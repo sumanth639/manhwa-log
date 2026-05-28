@@ -383,7 +383,6 @@ function normTitle(t) {
 /** Merge results from multiple adapters, deduping by normalised title */
 async function searchAcrossSites(query) {
   const adapters = [
-    searchAsura,
     searchWebtoon,
     searchToonily,
     searchManhwaTop,
@@ -411,9 +410,50 @@ async function searchAcrossSites(query) {
   return [...map.values()].slice(0, 30);
 }
 
-// --- Asura Scans ------------------------------------------------
-async function searchAsura(q) {
-  const res = await fetch(`https://asurascans.com/?s=${encodeURIComponent(q)}`, { signal: AbortSignal.timeout(8000) });
+/** Shared fetch headers — helps avoid bot-detection on plain fetch requests */
+const SEARCH_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Accept-Language": "en-US,en;q=0.9",
+};
+
+// --- Webtoon -------------------------------------------------------
+// Actual search result structure:
+//   ul.webtoon_list > li > a > div.image_wrap > img
+//                               > div.info_text  > strong.title
+async function searchWebtoon(q) {
+  const url = `https://www.webtoons.com/en/search?keyword=${encodeURIComponent(q)}`;
+  const res = await fetch(url, { headers: SEARCH_HEADERS, signal: AbortSignal.timeout(8000) });
+  const html = await res.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const items = [];
+  doc.querySelectorAll(".webtoon_list li").forEach(el => {
+    const a = el.querySelector("a");
+    const img = el.querySelector("img");
+    const title = el.querySelector("strong.title")?.textContent?.trim() || "";
+    const href = a?.getAttribute("href") || "";
+    if (!title || !href) return;
+    items.push({
+      title,
+      cover: img?.getAttribute("src") || "",
+      chapters: "",
+      // href is already absolute on Webtoon
+      sites: [{ site: "Webtoon", url: href.startsWith("http") ? href : `https://www.webtoons.com${href}` }],
+    });
+  });
+  return items;
+}
+
+// --- WordPress search helper (MangaReader / WP-Manga theme) ---------
+// Card structure: div.bsx > a[href][title] > img.data-lazy-src
+//                                          > div.adds > h2.tt
+// IMPORTANT: use getAttribute("href") — DOMParser has no base URL,
+// so a.href resolves against extension origin instead of the site.
+async function wpSearch(origin, siteName, q) {
+  const url = `${origin}/?s=${encodeURIComponent(q)}`;
+  const res = await fetch(url, { headers: SEARCH_HEADERS, signal: AbortSignal.timeout(10000) });
+  if (!res.ok) return [];
   const html = await res.text();
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
@@ -421,59 +461,20 @@ async function searchAsura(q) {
   doc.querySelectorAll(".bsx").forEach(el => {
     const a = el.querySelector("a");
     const img = el.querySelector("img");
-    const title = el.querySelector(".tt")?.textContent?.trim() || a?.getAttribute("title") || "";
-    if (!title) return;
+    const href = a?.getAttribute("href") || "";
+    // title attribute on the anchor is the most reliable source in this theme
+    const title = a?.getAttribute("title") || el.querySelector(".tt")?.textContent?.trim() || "";
+    if (!title || !href) return;
+    // Lazy-loaded images may be in data-lazy-src or data-src before real src
+    const cover =
+      img?.getAttribute("data-lazy-src") ||
+      img?.getAttribute("data-src") ||
+      img?.getAttribute("src") || "";
     items.push({
       title,
-      cover: img?.getAttribute("src") || img?.getAttribute("data-src") || "",
+      cover,
       chapters: "",
-      sites: [{ site: "Asura", url: a?.href || "" }],
-    });
-  });
-  return items;
-}
-
-// --- Webtoon -------------------------------------------------------
-async function searchWebtoon(q) {
-  const url = `https://www.webtoons.com/en/search?keyword=${encodeURIComponent(q)}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  const html = await res.text();
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-  const items = [];
-  doc.querySelectorAll(".card_lst li").forEach(el => {
-    const a = el.querySelector("a");
-    const img = el.querySelector("img");
-    const title = el.querySelector(".subj")?.textContent?.trim() || "";
-    if (!title) return;
-    items.push({
-      title,
-      cover: img?.getAttribute("src") || "",
-      chapters: "",
-      sites: [{ site: "Webtoon", url: a?.href || "" }],
-    });
-  });
-  return items;
-}
-
-// --- WordPress search helper (used by many MangaReader sites) -------
-async function wpSearch(origin, siteName, q) {
-  const url = `${origin}/?s=${encodeURIComponent(q)}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  const html = await res.text();
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-  const items = [];
-  doc.querySelectorAll(".bsx, .listupd .bs").forEach(el => {
-    const a = el.querySelector("a");
-    const img = el.querySelector("img");
-    const title = el.querySelector(".tt, .title")?.textContent?.trim() || a?.getAttribute("title") || "";
-    if (!title) return;
-    items.push({
-      title,
-      cover: img?.getAttribute("src") || img?.getAttribute("data-src") || "",
-      chapters: "",
-      sites: [{ site: siteName, url: a?.href || "" }],
+      sites: [{ site: siteName, url: href.startsWith("http") ? href : `${origin}${href}` }],
     });
   });
   return items;
