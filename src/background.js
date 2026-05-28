@@ -439,14 +439,8 @@ async function searchAcrossSites(query) {
     searchAsura,
     searchWebtoon,
     searchManta,
-    searchHiveToons,
-    searchToonily,
-    searchManhwaTop,
-    searchManhuaUS,
     searchKingOfShojo,
     searchArenascan,
-    searchToonGod,
-    searchTapas,
   ];
 
   const settled = await Promise.allSettled(adapters.map(fn => fn(query)));
@@ -496,24 +490,14 @@ async function searchAcrossSites(query) {
   // Append fallback search links for sites we cannot scrape directly
   const fallbacks = [
     {
-      title: `Search for "${query}" on MangaFire`,
+      title: `Search for "${query}"`,
       cover: "",
       chapters: "",
-      sites: [{ site: "MangaFire", url: `https://mangafire.to/filter?keyword=${encodeURIComponent(query)}` }],
-      isFallback: true
-    },
-    {
-      title: `Search for "${query}" on KunManga`,
-      cover: "",
-      chapters: "",
-      sites: [{ site: "KunManga", url: `https://kunmanga.com/?s=${encodeURIComponent(query)}` }],
-      isFallback: true
-    },
-    {
-      title: `Search for "${query}" on ManhwaClan`,
-      cover: "",
-      chapters: "",
-      sites: [{ site: "ManhwaClan", url: `https://manhwaclan.com/?s=${encodeURIComponent(query)}` }],
+      sites: [
+        { site: "MangaFire", url: `https://mangafire.to/filter?keyword=${encodeURIComponent(query)}` },
+        { site: "KunManga", url: `https://kunmanga.com/?s=${encodeURIComponent(query)}` },
+        { site: "ManhwaClan", url: `https://manhwaclan.com/?s=${encodeURIComponent(query)}` }
+      ],
       isFallback: true
     }
   ];

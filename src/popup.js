@@ -613,13 +613,19 @@ function renderFindResults(results) {
 
     card.innerHTML = `
       <div class="find-cover-container" style="position: relative; width: 52px; height: 72px; flex-shrink: 0; border-radius: 7px; overflow: hidden;">
-        <div class="find-cover-placeholder" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; z-index: 1;"></div>
+        <div class="find-cover-placeholder" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; z-index: 1; display: flex; align-items: center; justify-content: center; color: var(--text-faint);">
+          ${item.isFallback ? `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M16 16L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          ` : ""}
+        </div>
         ${item.cover ? `<img class="find-cover" src="${item.cover}" alt="" loading="lazy" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; z-index: 2; object-fit: cover;" onerror="this.style.display='none';">` : ""}
       </div>
       <div class="find-card-body">
         <div class="find-card-title">${item.title}</div>
-        <div class="find-card-sites">${siteBadges}</div>
-        ${item.chapters ? `<div class="find-card-meta">${item.chapters} chapters</div>` : ""}
+        ${item.isFallback ? "" : `<div class="find-card-sites">${siteBadges}</div>`}
         <div class="find-card-actions">${actions}</div>
       </div>`;
 
