@@ -642,7 +642,7 @@ function renderFindResults(results) {
       <div class="find-cover-container">
         <div class="find-cover-placeholder">
           ${item.isFallback ? `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               <path d="M16 16L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
