@@ -583,25 +583,39 @@ function renderFindResults(results) {
   findResults.classList.remove("is-hidden");
   findResults.innerHTML = "";
 
-  for (const item of results) {
+  function normTitle(t) {
+    if (!t) return "";
+    return t.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+  }
+
+  function createFindCard(item) {
     const card = document.createElement("div");
     card.className = "find-card";
 
-    const siteBadges = item.sites
+    // Deduplicate sites inside popup just to be absolutely sure
+    const seen = new Set();
+    const uniqueSites = item.sites.filter(s => {
+      const duplicate = seen.has(s.site);
+      seen.add(s.site);
+      return !duplicate;
+    });
+
+    const siteBadges = uniqueSites
       .map((s) => `<span class="find-site-badge">${s.site}</span>`)
       .join("");
 
     const actions =
-      item.sites.length === 1
-        ? `<button class="find-open-btn" data-url="${item.sites[0].url}">Open &nearr;</button>`
-        : item.sites
+      uniqueSites.length === 1
+        ? `<button class="find-open-btn" data-url="${uniqueSites[0].url}">Open &nearr;</button>`
+        : uniqueSites
             .map((s) => `<button class="find-source-btn" data-url="${s.url}">${s.site}</button>`)
             .join("");
 
     card.innerHTML = `
-      ${item.cover
-        ? `<img class="find-cover" src="${item.cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
-        : `<div class="find-cover-placeholder"></div>`}
+      <div class="find-cover-container" style="position: relative; width: 52px; height: 72px; flex-shrink: 0; border-radius: 7px; overflow: hidden;">
+        <div class="find-cover-placeholder" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; z-index: 1;"></div>
+        ${item.cover ? `<img class="find-cover" src="${item.cover}" alt="" loading="lazy" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; z-index: 2; object-fit: cover;" onerror="this.style.display='none';">` : ""}
+      </div>
       <div class="find-card-body">
         <div class="find-card-title">${item.title}</div>
         <div class="find-card-sites">${siteBadges}</div>
@@ -613,7 +627,46 @@ function renderFindResults(results) {
       btn.addEventListener("click", () => chrome.tabs.create({ url: btn.dataset.url }));
     });
 
-    findResults.appendChild(card);
+    return card;
+  }
+
+  function createSectionHeader(title) {
+    const header = document.createElement("div");
+    header.className = "find-section-header";
+    header.textContent = title;
+    return header;
+  }
+
+  const exactMatches = [];
+  const relatedResults = [];
+  const fallbackCards = [];
+
+  const query = findInput.value.trim();
+  const nQuery = normTitle(query);
+
+  for (const item of results) {
+    if (item.isFallback) {
+      fallbackCards.push(item);
+    } else if (normTitle(item.title) === nQuery) {
+      exactMatches.push(item);
+    } else {
+      relatedResults.push(item);
+    }
+  }
+
+  if (exactMatches.length > 0) {
+    findResults.appendChild(createSectionHeader("Exact Matches"));
+    exactMatches.forEach(item => findResults.appendChild(createFindCard(item)));
+  }
+
+  if (relatedResults.length > 0) {
+    findResults.appendChild(createSectionHeader("Related Results"));
+    relatedResults.forEach(item => findResults.appendChild(createFindCard(item)));
+  }
+
+  if (fallbackCards.length > 0) {
+    findResults.appendChild(createSectionHeader("Search on Site"));
+    fallbackCards.forEach(item => findResults.appendChild(createFindCard(item)));
   }
 }
 

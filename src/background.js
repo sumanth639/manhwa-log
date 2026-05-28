@@ -375,9 +375,62 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Cross-site search
 // ------------------------------------------------------------
 
-/** Normalise a title for fuzzy comparison */
-function normTitle(t) {
-  return t.toLowerCase().replace(/[^a-z0-9]/g, "");
+/** Normalise a title for query filtering and scoring */
+function normalizeTitle(t) {
+  if (!t) return "";
+  return t.toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+}
+
+/** Calculate relevance score of a result title against search query */
+function scoreResult(title, query) {
+  const nTitle = normalizeTitle(title);
+  const nQuery = normalizeTitle(query);
+  if (!nTitle || !nQuery) return 0;
+  
+  if (nTitle === nQuery) return 100;
+  if (nTitle.startsWith(nQuery)) return 80;
+  if (nTitle.includes(nQuery)) return 60;
+  if (nQuery.includes(nTitle)) return 50;
+  
+  // Fuzzy match fallback
+  const dist = levenshteinDistance(nTitle, nQuery);
+  if (dist <= 3) {
+    return 40 - dist;
+  }
+  return 0;
+}
+
+/** Helper to extract and resolve image cover URL from a DOM element or HTML block */
+function getImageSrc(img, baseUrl) {
+  if (!img) return "";
+  let src = "";
+  if (typeof img === "string") {
+    // Parse HTML attributes from string block using regex
+    const attributes = ["data-src", "data-lazy-src", "data-cfsrc", "src"];
+    for (const attr of attributes) {
+      const match = img.match(new RegExp(`${attr}\\s*=\\s*["']([^"']+)["']`, "i"));
+      if (match && match[1]) {
+        src = match[1].trim();
+        break;
+      }
+    }
+  } else if (typeof img === "object" && img.getAttribute) {
+    src = img.getAttribute("data-src") ||
+          img.getAttribute("data-lazy-src") ||
+          img.getAttribute("data-cfsrc") ||
+          img.getAttribute("src") ||
+          img.src || "";
+  } else if (typeof img === "object") {
+    src = img.src || "";
+  }
+  
+  if (!src || src.startsWith("data:")) return src;
+  
+  try {
+    return new URL(src, baseUrl).href;
+  } catch (e) {
+    return src;
+  }
 }
 
 /** Merge results from multiple adapters, deduping by normalised title */
@@ -400,10 +453,18 @@ async function searchAcrossSites(query) {
   /** @type {Map<string, {title:string, cover:string, chapters:string, sites:{site:string, url:string}[]}>} */
   const map = new Map();
 
+  const normQuery = normalizeTitle(query);
+
   for (const r of settled) {
     if (r.status !== "fulfilled") continue;
     for (const item of r.value) {
-      const key = normTitle(item.title);
+      const nTitle = normalizeTitle(item.title);
+      
+      // 1. Strict title filtering: query in title OR title in query
+      const isMatch = nTitle.includes(normQuery) || normQuery.includes(nTitle);
+      if (!isMatch) continue;
+
+      const key = normalizeTitle(item.title);
       if (map.has(key)) {
         const existing = map.get(key);
         for (const newSite of item.sites) {
@@ -417,34 +478,47 @@ async function searchAcrossSites(query) {
     }
   }
 
+  // 4. Remove duplicate site badges for each item
+  for (const item of map.values()) {
+    const seen = new Set();
+    item.sites = item.sites.filter(s => {
+      const duplicate = seen.has(s.site);
+      seen.add(s.site);
+      return !duplicate;
+    });
+  }
+
+  // 8. Score and sort matched results
+  const matchedResults = [...map.values()].sort((a, b) => {
+    return scoreResult(b.title, query) - scoreResult(a.title, query);
+  });
+
   // Append fallback search links for sites we cannot scrape directly
   const fallbacks = [
     {
       title: `Search for "${query}" on MangaFire`,
       cover: "",
       chapters: "",
-      sites: [{ site: "MangaFire", url: `https://mangafire.to/filter?keyword=${encodeURIComponent(query)}` }]
+      sites: [{ site: "MangaFire", url: `https://mangafire.to/filter?keyword=${encodeURIComponent(query)}` }],
+      isFallback: true
     },
     {
       title: `Search for "${query}" on KunManga`,
       cover: "",
       chapters: "",
-      sites: [{ site: "KunManga", url: `https://kunmanga.com/?s=${encodeURIComponent(query)}` }]
+      sites: [{ site: "KunManga", url: `https://kunmanga.com/?s=${encodeURIComponent(query)}` }],
+      isFallback: true
     },
     {
       title: `Search for "${query}" on ManhwaClan`,
       cover: "",
       chapters: "",
-      sites: [{ site: "ManhwaClan", url: `https://manhwaclan.com/?s=${encodeURIComponent(query)}` }]
+      sites: [{ site: "ManhwaClan", url: `https://manhwaclan.com/?s=${encodeURIComponent(query)}` }],
+      isFallback: true
     }
   ];
 
-  for (const item of fallbacks) {
-    const key = normTitle(item.title);
-    map.set(key, item);
-  }
-
-  return [...map.values()].slice(0, 30);
+  return [...matchedResults, ...fallbacks].slice(0, 30);
 }
 
 /** Shared fetch headers — helps avoid bot-detection on plain fetch requests */
@@ -466,11 +540,28 @@ async function searchAsura(q) {
     const data = json.data || [];
     for (const x of data) {
       if (!x.title) continue;
+      
+      let asuraUrl = "";
+      const publicUrl = x.public_url || "";
+      if (publicUrl) {
+        if (publicUrl.startsWith("http")) {
+          asuraUrl = publicUrl;
+        } else {
+          try {
+            asuraUrl = new URL(publicUrl, "https://asuracomic.net").href;
+          } catch (err) {
+            asuraUrl = `https://asuracomic.net${publicUrl.startsWith("/") ? "" : "/"}${publicUrl}`;
+          }
+        }
+      } else {
+        asuraUrl = `https://asuracomic.net/search?q=${encodeURIComponent(x.title)}`;
+      }
+
       items.push({
         title: x.title,
         cover: x.cover || "",
         chapters: x.chapter_count ? `${x.chapter_count} chapters` : "",
-        sites: [{ site: "Asura Scans", url: `https://asuracomic.net${x.public_url || ""}` }]
+        sites: [{ site: "Asura Scans", url: asuraUrl }]
       });
     }
     return items;
@@ -670,10 +761,8 @@ async function searchToonGod(q) {
         const title = hrefMatch[2].replace(/<[^>]*>/g, "").trim();
         if (!title || !href) continue;
         
-        // Match image source
-        const dataSrcMatch = block.match(/data-src="([^"]+)"/i);
-        const srcMatch = block.match(/src="([^"]+)"/i);
-        const cover = (dataSrcMatch ? dataSrcMatch[1] : (srcMatch ? srcMatch[1] : "")).trim();
+        // Match image source via helper
+        const cover = getImageSrc(block, "https://www.toongod.org");
         
         items.push({
           title,
@@ -731,9 +820,8 @@ async function searchTapas(q) {
         const title = titleMatch[2].replace(/<[^>]*>/g, "").trim();
         if (!title || !href) continue;
         
-        // Match image src inside item-thumb-wrap
-        const imgMatch = block.match(/<div[^>]*class="[^"]*item-thumb-wrap[^"]*"[\s\S]*?<img[^>]+src="([^"]+)"/i);
-        const cover = imgMatch ? imgMatch[1].trim() : "";
+        // Match image src via helper
+        const cover = getImageSrc(block, "https://tapas.io");
         
         items.push({
           title,
