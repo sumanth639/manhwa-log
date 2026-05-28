@@ -615,13 +615,9 @@ function renderFindResults(results) {
       return !duplicate;
     });
 
-    const siteBadges = uniqueSites
-      .map((s) => `<span class="find-site-badge">${s.site}</span>`)
-      .join("");
-
     const actions =
       uniqueSites.length === 1
-        ? `<button class="find-open-btn" data-url="${uniqueSites[0].url}">Open &nearr;</button>`
+        ? `<button class="find-open-btn" data-url="${uniqueSites[0].url}">${uniqueSites[0].site} &nearr;</button>`
         : uniqueSites
             .map((s) => `<button class="find-source-btn" data-url="${s.url}">${s.site}</button>`)
             .join("");
@@ -652,7 +648,6 @@ function renderFindResults(results) {
       </div>
       <div class="find-card-body">
         <div class="find-card-title">${item.title}</div>
-        ${item.isFallback ? "" : `<div class="find-card-sites">${siteBadges}</div>`}
         <div class="find-card-actions">${actions}</div>
       </div>`;
 
