@@ -315,6 +315,12 @@ function handleArenascan() {
 async function genericDetect() {
   const path = location.pathname;
 
+  // Ignore catalog/search pagination paths like /page/18/ or /manga/title/page/2/
+  const pathSegments = path.split("/").filter(Boolean).map(s => s.toLowerCase());
+  if (pathSegments.includes("page") || pathSegments.includes("pages")) {
+    return null;
+  }
+
   // Step 1: extract a likely chapter number from the URL path.
   let chapter = null;
 
@@ -382,7 +388,7 @@ async function genericDetect() {
   }
 
   // Confidence guard: reject common false-positive path fragments.
-  const FALSE_POSITIVE_BLOCKLIST = new Set(["cdn", "api", "www", "static", "assets", "v2", "v1", "img", "images", "web", "app"]);
+  const FALSE_POSITIVE_BLOCKLIST = new Set(["cdn", "api", "www", "static", "assets", "v2", "v1", "img", "images", "web", "app", "page", "pages"]);
   if (title.length < 3 || FALSE_POSITIVE_BLOCKLIST.has(title.toLowerCase())) {
     return null;
   }
