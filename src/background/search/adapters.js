@@ -1,5 +1,5 @@
 // Contains all cross-site search adapters.
-import { SEARCH_HEADERS, getImageSrc } from "./helpers.js";
+import { SEARCH_HEADERS } from "./helpers.js";
 
 // --- JSON APIs -----------------------------------------------------
 
@@ -58,7 +58,7 @@ export async function searchWebtoon(q) {
         title: x.title,
         cover: x.thumbnailMobile ? `https://webtoon-phinf.pstatic.net${x.thumbnailMobile}` : "",
         chapters: "",
-        sites: [{ site: "Webtoon", url: `https://www.webtoons.com/en/search?keyword=${encodeURIComponent(x.title)}` }]
+        sites: [{ site: "Webtoon", url: getWebtoonSeriesUrl(x) }]
       });
     }
     return items;
@@ -66,6 +66,34 @@ export async function searchWebtoon(q) {
     console.error("searchWebtoon error:", e);
     return [];
   }
+}
+
+function getWebtoonSeriesUrl(item) {
+  const titleNo = item.titleNo || item.title_no;
+  const titleSlug = item.titleSeo || item.titleSeoName || slugifyWebtoonPart(item.title);
+  const rawGenre = item.genre || item.representGenre || item.serviceGenre || "";
+  const type = String(item.titleType || item.serviceType || item.webtoonType || "").toLowerCase();
+
+  if (titleNo && titleSlug) {
+    if (type.includes("canvas") || type.includes("challenge")) {
+      return `https://www.webtoons.com/en/canvas/${titleSlug}/list?title_no=${encodeURIComponent(titleNo)}`;
+    }
+
+    const genreSlug = slugifyWebtoonPart(rawGenre);
+    if (genreSlug) {
+      return `https://www.webtoons.com/en/${genreSlug}/${titleSlug}/list?title_no=${encodeURIComponent(titleNo)}`;
+    }
+  }
+
+  return `https://www.webtoons.com/en/search?keyword=${encodeURIComponent(item.title)}`;
+}
+
+function slugifyWebtoonPart(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export async function searchManta(q) {
@@ -209,67 +237,9 @@ export async function searchManhwaTop(q) { return searchWPMangaPost("https://man
 export async function searchManhuaUS(q) { return searchWPMangaPost("https://manhuaus.com", "ManhuaUS", q); }
 export async function searchKingOfShojo(q) { return searchTsAcPost("https://kingofshojo.com", "KingOfShojo", q); }
 export async function searchArenascan(q) { return searchTsAcPost("https://arenascan.com", "ArenaScan", q); }
+export async function searchToonGod(q) { return searchWPMangaPost("https://www.toongod.org", "ToonGod", q); }
 
 // --- HTML Scrape ---------------------------------------------------
-
-export async function searchToonGod(q) {
-  try {
-    const url = `https://www.toongod.org/?s=${encodeURIComponent(q)}&post_type=wp-manga`;
-    const res = await fetch(url, { headers: SEARCH_HEADERS, signal: AbortSignal.timeout(10000) });
-    if (!res.ok) return [];
-    const html = await res.text();
-    const items = [];
-
-    // Split by c-tabs-item__content container
-    const blocks = html.split(/class="[^"]*c-tabs-item__content[^"]*"/i);
-    if (blocks.length > 1) {
-      for (let i = 1; i < blocks.length; i++) {
-        const block = blocks[i];
-
-        // Match title and href inside post-title
-        const hrefMatch = block.match(/<div[^>]*class="[^"]*post-title[^"]*"[\s\S]*?<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i);
-        if (!hrefMatch) continue;
-
-        const href = hrefMatch[1].trim();
-        const title = hrefMatch[2].replace(/<[^>]*>/g, "").trim();
-        if (!title || !href) continue;
-
-        // Match image source via helper
-        const cover = getImageSrc(block, "https://www.toongod.org");
-
-        items.push({
-          title,
-          cover,
-          chapters: "",
-          sites: [{ site: "ToonGod", url: href }]
-        });
-      }
-    }
-
-    // Fallback: search for simple post-title h3 a matches in the whole html if blocks didn't yield anything
-    if (items.length === 0) {
-      const globalRegex = /<div[^>]*class="[^"]*post-title[^"]*"[\s\S]*?<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
-      let match;
-      while ((match = globalRegex.exec(html)) !== null) {
-        const href = match[1].trim();
-        const title = match[2].replace(/<[^>]*>/g, "").trim();
-        if (title && href) {
-          items.push({
-            title,
-            cover: "",
-            chapters: "",
-            sites: [{ site: "ToonGod", url: href }]
-          });
-        }
-      }
-    }
-
-    return items;
-  } catch (e) {
-    console.error("searchToonGod error:", e);
-    return [];
-  }
-}
 
 export async function searchTapas(q) {
   try {
@@ -279,30 +249,26 @@ export async function searchTapas(q) {
     const html = await res.text();
     const items = [];
 
-    // Split by search-item-wrap
-    const blocks = html.split(/class="[^"]*search-item-wrap[^"]*"/i);
-    if (blocks.length > 1) {
-      for (let i = 1; i < blocks.length; i++) {
-        const block = blocks[i];
+    const blocks = html.split(/class="search-item-wrap"/i);
+    for (let i = 1; i < blocks.length; i++) {
+      const block = blocks[i];
 
-        // Match title and href inside title class
-        const titleMatch = block.match(/<div[^>]*class="[^"]*title[^"]*"[\s\S]*?<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i);
-        if (!titleMatch) continue;
+      const titleMatch = block.match(/<p[^>]*class="[^"]*\btitle\b[^"]*"[^>]*>[\s\S]*?<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i);
+      if (!titleMatch) continue;
 
-        const href = titleMatch[1].trim();
-        const title = titleMatch[2].replace(/<[^>]*>/g, "").trim();
-        if (!title || !href) continue;
+      const href = titleMatch[1].trim();
+      const title = titleMatch[2].replace(/<[^>]*>/g, "").trim();
+      if (!title || !href) continue;
 
-        // Match image src via helper
-        const cover = getImageSrc(block, "https://tapas.io");
+      const coverMatch = block.match(/<img\s[^>]*src="([^"]+)"[^>]*>/i);
+      const cover = coverMatch ? coverMatch[1].trim() : "";
 
-        items.push({
-          title,
-          cover,
-          chapters: "",
-          sites: [{ site: "Tapas", url: href.startsWith("http") ? href : `https://tapas.io${href}` }]
-        });
-      }
+      items.push({
+        title,
+        cover,
+        chapters: "",
+        sites: [{ site: "Tapas", url: href.startsWith("http") ? href : `https://tapas.io${href}` }]
+      });
     }
 
     return items;

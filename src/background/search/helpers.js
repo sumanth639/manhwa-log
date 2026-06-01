@@ -32,36 +32,3 @@ export function scoreResult(title, query) {
   }
   return 0;
 }
-
-/** Helper to extract and resolve image cover URL from a DOM element or HTML block */
-export function getImageSrc(img, baseUrl) {
-  if (!img) return "";
-  let src = "";
-  if (typeof img === "string") {
-    // Parse HTML attributes from string block using regex
-    const attributes = ["data-src", "data-lazy-src", "data-cfsrc", "src"];
-    for (const attr of attributes) {
-      const match = img.match(new RegExp(`${attr}\\s*=\\s*["']([^"']+)["']`, "i"));
-      if (match && match[1]) {
-        src = match[1].trim();
-        break;
-      }
-    }
-  } else if (typeof img === "object" && img.getAttribute) {
-    src = img.getAttribute("data-src") ||
-          img.getAttribute("data-lazy-src") ||
-          img.getAttribute("data-cfsrc") ||
-          img.getAttribute("src") ||
-          img.src || "";
-  } else if (typeof img === "object") {
-    src = img.src || "";
-  }
-
-  if (!src || src.startsWith("data:")) return src;
-
-  try {
-    return new URL(src, baseUrl).href;
-  } catch (e) {
-    return src;
-  }
-}
