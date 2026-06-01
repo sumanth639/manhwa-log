@@ -54,25 +54,16 @@ function showPanel(id) {
   Object.values(panels).forEach((panel) => panel.classList.remove("active"));
   panels[id].classList.add("active");
 
+  const discoverToggle = document.getElementById("discoverToggle");
   const settingsToggle = document.getElementById("settingsToggle");
   const backBtn = document.getElementById("headerBackBtn");
+  const isReading = id === "reading";
 
-  // Sync main-tab active state
-  document.querySelectorAll(".main-tab").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.tab === id);
-  });
-
-  if (id === "settings") {
-    settingsToggle.hidden = true;
-    backBtn.hidden = false;
-    settingsToggle.classList.add("is-hidden");
-    backBtn.classList.remove("is-hidden");
-  } else {
-    settingsToggle.hidden = false;
-    backBtn.hidden = true;
-    settingsToggle.classList.remove("is-hidden");
-    backBtn.classList.add("is-hidden");
-  }
+  discoverToggle.hidden = !isReading;
+  backBtn.hidden = isReading;
+  discoverToggle.classList.toggle("is-hidden", !isReading);
+  settingsToggle.classList.remove("is-hidden");
+  backBtn.classList.toggle("is-hidden", isReading);
 }
 
 function timeAgo(ts) {
@@ -412,6 +403,9 @@ document
   .addEventListener("click", () => setTheme(true));
 
 document
+  .getElementById("discoverToggle")
+  .addEventListener("click", () => showPanel("find"));
+document
   .getElementById("settingsToggle")
   .addEventListener("click", () => showPanel("settings"));
 document
@@ -545,11 +539,6 @@ document
 showPanel("reading");
 loadData();
 updateStorageMeter();
-
-// Main tab switching (My List / Find)
-document.querySelectorAll(".main-tab").forEach((btn) => {
-  btn.addEventListener("click", () => showPanel(btn.dataset.tab));
-});
 
 // ================================================================
 // Find Panel — Cross-site search
@@ -695,8 +684,14 @@ function renderFindResults(results) {
     "Asura Scans": `https://asuracomic.net/search?q=${encodeURIComponent(query)}`,
     "Webtoon": `https://www.webtoons.com/en/search?keyword=${encodeURIComponent(query)}`,
     "Manta": `https://manta.net/en/search?q=${encodeURIComponent(query)}`,
+    "Hive Toons": `https://hivetoons.org/?s=${encodeURIComponent(query)}`,
+    "Toonily": `https://toonily.com/?s=${encodeURIComponent(query)}`,
+    "ManhwaTop": `https://manhwatop.com/?s=${encodeURIComponent(query)}`,
+    "ManhuaUS": `https://manhuaus.com/?s=${encodeURIComponent(query)}`,
     "KingOfShojo": `https://kingofshojo.com/?s=${encodeURIComponent(query)}`,
-    "ArenaScan": `https://arenascan.com/?s=${encodeURIComponent(query)}`
+    "ArenaScan": `https://arenascan.com/?s=${encodeURIComponent(query)}`,
+    "ToonGod": `https://www.toongod.org/?s=${encodeURIComponent(query)}&post_type=wp-manga`,
+    "Tapas": `https://tapas.io/search?q=${encodeURIComponent(query)}&t=COMIC`
   };
 
   for (const item of results) {
