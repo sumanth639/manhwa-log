@@ -4,7 +4,6 @@ import { getAnalytics } from "./analytics.js";
 import { fuzzyTitleMatch } from "./matcher.js";
 import { updateProgress } from "./progress.js";
 import { searchAcrossSites } from "./search/index.js";
-import { setupNetworkRules } from "./network.js";
 
 // The content script cannot always observe SPA URL changes by itself, so the
 // background worker relays browser-level updates back into the active tab.
@@ -135,5 +134,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 });
-
-setupNetworkRules();
