@@ -439,8 +439,14 @@ async function searchAcrossSites(query) {
     searchAsura,
     searchWebtoon,
     searchManta,
+    searchHiveToons,
+    searchToonily,
+    searchManhwaTop,
+    searchManhuaUS,
     searchKingOfShojo,
     searchArenascan,
+    searchToonGod,
+    searchTapas,
   ];
 
   const settled = await Promise.allSettled(adapters.map(fn => fn(query)));
@@ -508,6 +514,7 @@ async function searchAcrossSites(query) {
       chapters: "",
       sites: [
         { site: "MangaFire", url: `https://mangafire.to/filter?keyword=${encodeURIComponent(query)}` },
+        { site: "ToonGod", url: `https://www.toongod.org/?s=${encodeURIComponent(query)}&post_type=wp-manga` },
         { site: "KunManga", url: `https://kunmanga.com/?s=${encodeURIComponent(query)}` },
         { site: "ManhwaClan", url: `https://manhwaclan.com/?s=${encodeURIComponent(query)}` }
       ],
@@ -515,7 +522,7 @@ async function searchAcrossSites(query) {
     }
   ];
 
-  return [...matchedResults, ...fallbacks].slice(0, 30);
+  return [...matchedResults.slice(0, 29), ...fallbacks];
 }
 
 /** Shared fetch headers — helps avoid bot-detection on plain fetch requests */
@@ -835,14 +842,6 @@ async function searchTapas(q) {
     return [];
   }
 }
-
-// ------------------------------------------------------------
-// Side Panel
-// ------------------------------------------------------------
-
-chrome.sidePanel
-  .setPanelBehavior({ openPanelOnActionClick: true })
-  .catch(() => {});
 
 // ------------------------------------------------------------
 // Network Header Rules (DeclarativeNetRequest)

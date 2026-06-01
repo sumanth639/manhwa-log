@@ -6,7 +6,8 @@
 
 html {
   overflow: hidden;
-  height: 100%;
+  width: 460px;
+  height: 600px;
 }
 
 * {
@@ -21,15 +22,15 @@ body {
   align-items: flex-start;
   margin: 0;
   padding: 0;
-  height: 100%;
+  width: 460px;
+  height: 600px;
   background: transparent;
   overflow: hidden;
 }
 
 .app {
-  width: 100%;
-  height: 100%;
-  min-height: 500px;
+  width: 460px;
+  height: 600px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -120,44 +121,31 @@ body {
   gap: 6px;
 }
 
-/* Main tab switcher (My List / Find) */
-.main-tabs {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface-soft);
-}
-
-.main-tab {
+.discover-toggle {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 12px;
-  border: none;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--text-faint);
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--text-soft);
   font-family: inherit;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   transition:
+    border-color 0.16s ease,
     background 0.16s ease,
     color 0.16s ease;
   white-space: nowrap;
 }
 
-.main-tab.active {
-  background: var(--accent);
-  color: #fff;
-}
-
-.main-tab:not(.active):hover {
-  background: var(--surface-muted);
-  color: var(--text-soft);
+.discover-toggle:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .hbtn {
@@ -196,7 +184,8 @@ body {
 .next-btn:focus-visible,
 .source-toggle:focus-visible,
 .source-link:focus-visible,
-.history-toggle:focus-visible {
+.history-toggle:focus-visible,
+.discover-toggle:focus-visible {
   outline: 2px solid var(--accent-soft);
   outline-offset: 1px;
 }
@@ -386,17 +375,23 @@ body {
 }
 
 .list-wrap::-webkit-scrollbar,
-.settings-body::-webkit-scrollbar {
+.settings-body::-webkit-scrollbar,
+.find-state::-webkit-scrollbar,
+.find-results::-webkit-scrollbar {
   width: 6px;
 }
 
 .list-wrap::-webkit-scrollbar-track,
-.settings-body::-webkit-scrollbar-track {
+.settings-body::-webkit-scrollbar-track,
+.find-state::-webkit-scrollbar-track,
+.find-results::-webkit-scrollbar-track {
   background: transparent;
 }
 
 .list-wrap::-webkit-scrollbar-thumb,
-.settings-body::-webkit-scrollbar-thumb {
+.settings-body::-webkit-scrollbar-thumb,
+.find-state::-webkit-scrollbar-thumb,
+.find-results::-webkit-scrollbar-thumb {
   background: var(--scrollbar);
   border-radius: 999px;
 }

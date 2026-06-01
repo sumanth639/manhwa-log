@@ -13,15 +13,13 @@
   },
 
   "action": {
+    "default_popup": "popup.html",
+    "default_title": "Manhwa Log",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
-  },
-
-  "side_panel": {
-    "default_path": "popup.html"
   },
 
   "commands": {
@@ -38,7 +36,7 @@
     "extension_pages": "script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data:; connect-src https:; default-src 'self'"
   },
 
-  "permissions": ["storage", "scripting", "tabs", "sidePanel", "declarativeNetRequestWithHostAccess"],
+  "permissions": ["storage", "scripting", "tabs", "declarativeNetRequestWithHostAccess"],
 
   "host_permissions": [
     "*://*.webtoons.com/*",
@@ -48,6 +46,7 @@
     "*://*.asurascans.com/*",
     "*://*.asuracomic.net/*",
     "*://*.arenascan.com/*",
+    "*://toongod.org/*",
     "*://*.toongod.org/*",
     "*://*.toongod.xyz/*",
     "*://*.kingofshojo.com/*",
@@ -76,6 +75,7 @@
         "*://*.asurascans.com/*",
         "*://*.asuracomic.net/*",
         "*://*.arenascan.com/*",
+        "*://toongod.org/*",
         "*://*.toongod.org/*",
         "*://*.toongod.xyz/*",
         "*://*.kingofshojo.com/*",
