@@ -235,6 +235,7 @@ async function searchTsAcPost(origin, siteName, q) {
 export async function searchToonily(q) { return searchWPMangaPost("https://toonily.com", "Toonily", q); }
 export async function searchManhwaTop(q) { return searchWPMangaPost("https://manhwatop.com", "ManhwaTop", q); }
 export async function searchManhuaUS(q) { return searchWPMangaPost("https://manhuaus.com", "ManhuaUS", q); }
+export async function searchManhwaClub(q) { return searchWPMangaPost("https://manhwaclub.net", "ManhwaClub", q); }
 export async function searchKingOfShojo(q) { return searchTsAcPost("https://kingofshojo.com", "KingOfShojo", q); }
 export async function searchArenascan(q) { return searchTsAcPost("https://arenascan.com", "ArenaScan", q); }
 export async function searchToonGod(q) { return searchWPMangaPost("https://www.toongod.org", "ToonGod", q); }

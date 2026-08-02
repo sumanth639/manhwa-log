@@ -144,6 +144,7 @@ export function renderFindResults(results) {
     "Toonily": `https://toonily.com/?s=${encodeURIComponent(query)}`,
     "ManhwaTop": `https://manhwatop.com/?s=${encodeURIComponent(query)}`,
     "ManhuaUS": `https://manhuaus.com/?s=${encodeURIComponent(query)}`,
+    "ManhwaClub": `https://manhwaclub.net/?s=${encodeURIComponent(query)}`,
     "KingOfShojo": `https://kingofshojo.com/?s=${encodeURIComponent(query)}`,
     "ArenaScan": `https://arenascan.com/?s=${encodeURIComponent(query)}`,
     "ToonGod": `https://www.toongod.org/?s=${encodeURIComponent(query)}&post_type=wp-manga`,

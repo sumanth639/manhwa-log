@@ -307,6 +307,19 @@ function handleArenascan() {
   return { title, chapter };
 }
 
+function handleManhwaClub() {
+  const text = document.querySelector('meta[property="og:title"]')?.content
+    || document.title
+    || "";
+  const match = text.match(/^(.+?)\s*[-\u2013|]\s*(?:chapter|ch\.?)\s*([\d.]+)/i);
+  if (!match) return null;
+
+  return {
+    title: match[1].trim(),
+    chapter: parseFloat(match[2])
+  };
+}
+
 
 // ------------------------------------------------------------
 // Generic Fallback Detection
@@ -540,6 +553,7 @@ async function detect() {
   else if (host.includes("flamecomics.xyz")) data = await handleFlameComicsWithRetry();
   else if (host.includes("toonily.com") || host.includes("toonily.me")) data = handleToonily();
   else if (host.includes("arenascan.com")) data = handleArenascan();
+  else if (host.includes("manhwaclub.net")) data = handleManhwaClub();
 
   if (!data && !host.includes("manta.net")) {
     // Manta already has a dedicated extraction path; other sites can use
